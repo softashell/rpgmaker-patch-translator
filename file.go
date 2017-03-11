@@ -55,50 +55,13 @@ func writePatchFile(patch patchFile) error {
 			check(err)
 		}
 
-		trans := ""
-		for _, l := range strings.Split(block.translation, "\n") {
-			// Remove any extra trailing new lines
-			l = strings.TrimRight(l, "\n")
-
-			// TODO: Ignore variables and functions
-			// TODO: Avoid hardcoding character limit
-			if len(l) > 42 {
-				line := ""
-				s := strings.Split(l, " ")
-				for i := range s {
-					if len(line)+len(s[i]) >= 42 {
-						log.Infof("Split! %q from %q", line, l)
-						trans += line + "\n"
-						line = ""
-					}
-
-					line += s[i] + " "
-				}
-
-				if len(strings.TrimSpace(line)) > 0 {
-					log.Infof("Split! %q from %q", line, l)
-
-					if !strings.HasSuffix(line, "\n") {
-						line += "\n"
-					}
-
-					trans += line
-				}
-			} else {
-				if !strings.HasSuffix(l, "\n") {
-					l += "\n"
-				}
-
-				trans += l
-			}
-		}
-
-		trans = strings.TrimRight(trans, "\n")
+		trans := breakLines(block.translation)
+		//		trans = strings.TrimRight(trans, "\n")
 
 		_, err = w.WriteString(trans)
 		check(err)
 
-		_, err = w.WriteString("\n> END STRING\n\n")
+		_, err = w.WriteString("> END STRING\n\n")
 		check(err)
 	}
 
