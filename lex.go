@@ -9,17 +9,13 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-const (
-	leftDelim  = "["
-	rightDelim = "]"
-)
+const eof = -1
 
 // item represents a token or text string returned from the scanner.
 type item struct {
-	typ  itemType // The type of this item.
-	pos  int
-	val  string // The value of this item.
-	line int
+	typ itemType // The type of this item.
+	pos int
+	val string // The value of this item.
 }
 
 func (i item) String() string {
@@ -28,12 +24,9 @@ func (i item) String() string {
 		return "EOF"
 	case i.typ == itemError:
 		return i.val
-	case i.typ > itemScript:
-		return fmt.Sprintf("<%q>", i.val)
-	case len(i.val) > 10:
-		return fmt.Sprintf("%.10q...", i.val)
 	}
-	return fmt.Sprintf("%q", i.val)
+
+	return fmt.Sprintf("{%s: %q}", i.typ, i.val)
 }
 
 // itemType identifies the type of lex items.
@@ -48,6 +41,7 @@ const (
 	itemRightDelim
 	itemLeftParen
 	itemRightParen
+	itemParameter
 	itemScript
 )
 
@@ -69,14 +63,14 @@ func (t itemType) String() string {
 		return "itemLeftParen"
 	case itemRightParen:
 		return "itemRightParen"
+	case itemParameter:
+		return "itemParameter"
 	case itemScript:
 		return "itemScript"
 	default:
 		panic(fmt.Sprintf("unknown item type: %d", t))
 	}
 }
-
-const eof = -1
 
 // stateFn represents the state of the scanner as a function that returns the next state.
 type stateFn func(*lexer) stateFn
@@ -91,7 +85,6 @@ type lexer struct {
 	lastPos    int       // position of most recent item returned by nextItem
 	items      chan item // channel of scanned items
 	parenDepth int
-	line       int // 1+number of newlines seen
 }
 
 // next returns the next rune in the input.
@@ -104,10 +97,6 @@ func (l *lexer) next() rune {
 	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
 	l.width = w
 	l.pos += l.width
-
-	if r == '\n' {
-		l.line++
-	}
 
 	return r
 }
@@ -132,22 +121,11 @@ func (l *lexer) peek() rune {
 // backup steps back one rune. Can only be called once per call of next.
 func (l *lexer) backup() {
 	l.pos -= l.width
-
-	// Correct newline count.
-	if l.width == 1 && l.input[l.pos] == '\n' {
-		l.line--
-	}
 }
 
 // emit passes an item back to the client.
 func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.start, l.input[l.start:l.pos], l.line}
-
-	// Some items contain text internally. If so, count their newlines.
-	switch t {
-	case itemText, itemRawString:
-		l.line += strings.Count(l.input[l.start:l.pos], "\n")
-	}
+	l.items <- item{t, l.start, l.input[l.start:l.pos]}
 
 	l.start = l.pos
 }
@@ -179,7 +157,7 @@ func (l *lexer) acceptRun(valid string) {
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...), l.line}
+	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...)}
 
 	return nil
 }
@@ -196,7 +174,6 @@ func lex(input string) *lexer {
 	l := &lexer{
 		input: input,
 		items: make(chan item),
-		line:  1,
 	}
 	go l.run()
 	return l
@@ -365,9 +342,10 @@ Loop:
 }
 
 func lexLeftDelim(l *lexer) stateFn {
-	log.Debug("leftDelim: ", l.input[l.pos:l.pos+len(leftDelim)])
+	log.Debug("leftDelim: ", l.input[l.pos:l.pos+len("[")])
 
-	l.pos += len(leftDelim)
+	l.pos += len("[")
+
 	l.emit(itemLeftDelim)
 	l.ignore()
 	//l.parenDepth = 0
@@ -376,8 +354,10 @@ func lexLeftDelim(l *lexer) stateFn {
 }
 
 func lexRightDelim(l *lexer) stateFn {
-	log.Debug("rightDelim: ", l.input[l.pos:l.pos+len(rightDelim)])
-	l.pos += len(rightDelim)
+	log.Debug("rightDelim: ", l.input[l.pos:l.pos+len("]")])
+
+	l.pos += len("]")
+
 	l.emit(itemRightDelim)
 
 	log.Debug("Paren depth: ", l.parenDepth)
@@ -414,7 +394,7 @@ func lexInsideAction(l *lexer) stateFn {
 		l.backup()
 
 		if l.pos > l.start {
-			l.emit(itemRawString)
+			l.emit(itemParameter)
 		}
 
 		l.ignore()
@@ -424,7 +404,7 @@ func lexInsideAction(l *lexer) stateFn {
 		l.backup()
 
 		if l.pos > l.start {
-			l.emit(itemRawString)
+			l.emit(itemParameter)
 		}
 
 		l.ignore()
@@ -434,11 +414,11 @@ func lexInsideAction(l *lexer) stateFn {
 		if r = l.next(); r != eof && r != '\n' {
 			switch r {
 			case 's':
-				l.emit(itemRawString)
+				l.emit(itemParameter)
 			}
 		}
 	case r == '"' || r == '\'':
-		l.emit(itemRawString)
+		l.emit(itemParameter)
 
 		return lexText
 	}
