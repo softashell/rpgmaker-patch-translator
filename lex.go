@@ -78,6 +78,16 @@ func (l *lexer) emit(t itemType) {
 	l.start = l.pos
 }
 
+func (l *lexer) emitBefore(t itemType) {
+	l.backup(1)
+
+	if l.pos > l.start {
+		l.emit(t)
+
+		l.ignore()
+	}
+}
+
 // ignore skips over the pending input before this point.
 func (l *lexer) ignore() {
 	l.start = l.pos
@@ -94,27 +104,12 @@ func (l *lexer) accept(valid string) bool {
 	return false
 }
 
-// acceptRun consumes a run of runes from the valid set.
-func (l *lexer) acceptRun(valid string) {
-	for strings.ContainsRune(valid, l.next()) {
-	}
-
-	l.backup(1)
-}
-
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...)}
 
 	return nil
-}
-
-// drain drains the output so the lexing goroutine will exit.
-// Called by the parser, not in the lexing goroutine.
-func (l *lexer) drain() {
-	for range l.items {
-	}
 }
 
 // lex creates a new scanner for the input string.
@@ -150,81 +145,35 @@ Loop:
 		case r == eof:
 			break Loop
 		case r == '"':
-			if l.pos > l.start {
-				l.backup(1)
-
-				if len(l.input[l.start:l.pos]) > 0 {
-					l.emit(itemText)
-
-					l.ignore()
-				}
-			}
+			l.emitBefore(itemText)
 
 			l.next()
 
 			return lexInsideAction
 		case r == '%':
-			if l.pos > l.start {
-				l.backup(1)
-
-				if len(l.input[l.start:l.pos]) > 0 {
-					l.emit(itemText)
-
-					l.ignore()
-				}
-			}
+			l.emitBefore(itemText)
 
 			l.next()
 
-			if r = l.next(); r != eof && r != '\n' {
-				switch r {
-				case 's':
-					l.emit(itemRawString)
-				}
+			if l.accept("s") {
+				l.emit(itemRawString)
 			}
 		case r == 'i' && strings.HasPrefix(l.input[l.pos:], "f("):
-			l.backup(1)
-
-			if l.pos > l.start {
-				l.emit(itemText)
-			}
-
-			l.ignore()
+			l.emitBefore(itemText)
 
 			return lexScript
 		case r == 'e' && strings.HasPrefix(l.input[l.pos:], "n("):
-			l.backup(1)
-
-			if l.pos > l.start {
-				l.emit(itemText)
-			}
-
-			l.ignore()
+			l.emitBefore(itemText)
 
 			return lexScript
 		case r == '\\':
-			if r = l.peek(1); r != eof && r != '\n' && r == '\\' {
-				l.backup(1)
-
-				if l.pos > l.start {
-					l.emit(itemText)
-				}
-
-				l.ignore()
+			if r = l.peek(1); r == '\\' {
+				l.emitBefore(itemText)
 
 				return lexScript
 			}
 		case strings.ContainsRune("\u3000。…【】」「\n()", r) || unicode.IsSymbol(r):
-			if l.pos > l.start {
-				l.backup(1)
-
-				if len(l.input[l.start:l.pos]) > 0 {
-					l.emit(itemText)
-
-					l.ignore()
-				}
-
-			}
+			l.emitBefore(itemText)
 
 			l.next()
 
@@ -236,9 +185,9 @@ Loop:
 
 	if l.pos > l.start {
 		l.emit(itemText)
-	}
 
-	l.ignore()
+		l.ignore()
+	}
 
 	l.emit(itemEOF)
 
@@ -247,11 +196,7 @@ Loop:
 }
 
 func lexScript(l *lexer) stateFn {
-	if l.pos < len(l.input) {
-		log.Debugf("lexScript %q", l.input[l.pos:])
-	} else {
-		log.Debugf("lexScript out of bounds %d/%d", l.pos, len(l.input))
-	}
+	log.Debugf("lexScript %q", l.input[l.pos:])
 
 Loop:
 	for {
@@ -269,13 +214,10 @@ Loop:
 			l.emit(itemScript)
 			return lexLeftDelim
 		case '\\':
-			if r := l.peek(1); r != eof && r != '\n' {
-				if strings.ContainsRune(">lrt{}$G.|^", r) {
-					l.next()
-
-					log.Debug("Found escaped ", string(r))
-					break Loop
-				}
+			//			if r := l.peek(1); r != eof && r != '\n' &&
+			if l.accept(">lrt{}$G.|^") {
+				log.Debug("Found escaped ", string(l.mark))
+				break Loop
 			}
 
 			fallthrough
@@ -292,21 +234,19 @@ Loop:
 }
 
 func lexLeftDelim(l *lexer) stateFn {
-	log.Debug("leftDelim: ", l.input[l.pos:l.pos+len("[")])
+	l.next()
 
-	l.pos += len("[")
+	log.Debug("leftDelim: ", string(l.mark))
 
 	l.emit(itemLeftDelim)
-	l.ignore()
-	//l.parenDepth = 0
 
 	return lexInsideAction
 }
 
 func lexRightDelim(l *lexer) stateFn {
-	log.Debug("rightDelim: ", l.input[l.pos:l.pos+len("]")])
+	l.next()
 
-	l.pos += len("]")
+	log.Debug("rightDelim: ", string(l.mark))
 
 	l.emit(itemRightDelim)
 
@@ -324,7 +264,7 @@ func lexInsideAction(l *lexer) stateFn {
 	log.Debugf("lexInsideAction %q", l.input[l.pos:])
 
 	switch r := l.next(); {
-	case r == eof || isEndOfLine(r):
+	case r == eof:
 		return l.errorf("unclosed action")
 	case r == '(':
 		l.emit(itemLeftParen)
@@ -341,32 +281,15 @@ func lexInsideAction(l *lexer) stateFn {
 			return lexText
 		}
 	case r == '[':
-		l.backup(1)
-
-		if l.pos > l.start {
-			l.emit(itemParameter)
-		}
-
-		l.ignore()
+		l.emitBefore(itemParameter)
 
 		return lexLeftDelim
 	case r == ']':
-		l.backup(1)
-
-		if l.pos > l.start {
-			l.emit(itemParameter)
-		}
-
-		l.ignore()
+		l.emitBefore(itemParameter)
 
 		return lexRightDelim
-	case r == '%':
-		if r = l.next(); r != eof && r != '\n' {
-			switch r {
-			case 's':
-				l.emit(itemParameter)
-			}
-		}
+	case r == '%' && l.accept("s"):
+		l.emit(itemParameter)
 	case r == '"':
 		l.emit(itemParameter)
 
@@ -374,9 +297,4 @@ func lexInsideAction(l *lexer) stateFn {
 	}
 
 	return lexInsideAction
-}
-
-// isEndOfLine reports whether r is an end-of-line character.
-func isEndOfLine(r rune) bool {
-	return r == '\r' || r == '\n'
 }
