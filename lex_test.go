@@ -27,6 +27,26 @@ func TestTextExtraction(t *testing.T) {
 			`Adventurer's clothes`,
 			`Adventurer's clothes`,
 		},
+		{
+			`An undocumented if`,
+			`An undocumented if`,
+		},
+		{
+			`An undocumented if()`,
+			`An undocumented `,
+		},
+		{
+			`if(v[178] \\>= 40)`,
+			``,
+		},
+		{
+			`踊れ if(v[178] \\>= 40)`,
+			`踊れ `,
+		},
+		{
+			`\\\>\\C[14]…今は使用できません。`,
+			`…今は使用できません。`,
+		},
 	}
 
 	for _, pair := range tests {

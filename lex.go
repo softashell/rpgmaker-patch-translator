@@ -182,35 +182,26 @@ Loop:
 					l.emit(itemRawString)
 				}
 			}
-		case r == 'i':
-			// FIXME: This is really awful
-			if r = l.peek(1); r != eof && r != '\n' && r == 'f' {
-				if r = l.peek(2); r != eof && r != '\n' && r == '(' {
-					l.backup(1)
+		case r == 'i' && strings.HasPrefix(l.input[l.pos:], "f("):
+			l.backup(1)
 
-					if l.pos > l.start {
-						l.emit(itemText)
-					}
-
-					l.ignore()
-
-					return lexScript
-				}
+			if l.pos > l.start {
+				l.emit(itemText)
 			}
-		case r == 'e':
-			if r = l.peek(1); r != eof && r != '\n' && r == 'n' {
-				if r = l.peek(2); r != eof && r != '\n' && r == '(' {
-					l.backup(1)
 
-					if l.pos > l.start {
-						l.emit(itemText)
-					}
+			l.ignore()
 
-					l.ignore()
+			return lexScript
+		case r == 'e' && strings.HasPrefix(l.input[l.pos:], "n("):
+			l.backup(1)
 
-					return lexScript
-				}
+			if l.pos > l.start {
+				l.emit(itemText)
 			}
+
+			l.ignore()
+
+			return lexScript
 		case r == '\\':
 			if r = l.peek(1); r != eof && r != '\n' && r == '\\' {
 				l.backup(1)
@@ -223,7 +214,7 @@ Loop:
 
 				return lexScript
 			}
-		case r == '\u3000' || r == '。' || r == '…' || r == '【' || r == '】' || r == '」' || r == '「' || r == '\n' || r == '(' || r == ')' || unicode.IsSymbol(r):
+		case strings.ContainsRune("\u3000。…【】」「\n()", r) || unicode.IsSymbol(r):
 			if l.pos > l.start {
 				l.backup(1)
 
@@ -232,6 +223,7 @@ Loop:
 
 					l.ignore()
 				}
+
 			}
 
 			l.next()
@@ -278,8 +270,7 @@ Loop:
 			return lexLeftDelim
 		case '\\':
 			if r := l.peek(1); r != eof && r != '\n' {
-				switch r {
-				case '>', 'l', 'r', 't', '{', '}', '$', 'G', '.', '|', '^':
+				if strings.ContainsRune(">lrt{}$G.|^", r) {
 					l.next()
 
 					log.Debug("Found escaped ", string(r))
