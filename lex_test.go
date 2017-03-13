@@ -1,10 +1,6 @@
 package main
 
-import (
-	"testing"
-
-	log "github.com/Sirupsen/logrus"
-)
+import "testing"
 
 type testpair struct {
 	value  string
@@ -12,8 +8,6 @@ type testpair struct {
 }
 
 func TestRawTextExtraction(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-
 	var tests = []testpair{
 		{
 			`An undocumented(test)`,
@@ -63,8 +57,6 @@ func TestRawTextExtraction(t *testing.T) {
 }
 
 func TestTranslatableTextExtraction(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-
 	var tests = []testpair{
 		{
 			`if(v[178] \\>= 40)`,
