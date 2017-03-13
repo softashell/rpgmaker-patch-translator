@@ -376,7 +376,7 @@ func lexInsideAction(l *lexer) stateFn {
 				l.emit(itemParameter)
 			}
 		}
-	case r == '"' || r == '\'':
+	case r == '"':
 		l.emit(itemParameter)
 
 		return lexText
