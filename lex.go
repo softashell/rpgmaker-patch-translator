@@ -214,7 +214,6 @@ Loop:
 			l.emit(itemScript)
 			return lexLeftDelim
 		case '\\':
-			//			if r := l.peek(1); r != eof && r != '\n' &&
 			if l.accept(">lrt{}$G.|^") {
 				log.Debug("Found escaped ", string(l.mark))
 				break Loop
