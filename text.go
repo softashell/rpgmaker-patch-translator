@@ -28,33 +28,43 @@ func breakLines(text string) string {
 		// Remove any extra trailing new lines
 		l = strings.TrimRight(l, "\n")
 
-		// TODO: Ignore variables and functions
 		// TODO: Avoid hardcoding character limit
 		if len(getOnlyText(l)) > 42 {
 			line := ""
 			s := strings.Split(l, " ")
 			for i := range s {
-				if len(line)+len(s[i]) >= 42 {
+				// TODO: Ignore variables and functions when calculating len
+				if len(line)+len(s[i]) > 42 {
 					log.Infof("Split! %q from %q", line, l)
 
-					out += line + "\n"
+					if !strings.HasSuffix(line, "\n") {
+						line += "\n"
+					}
+
+					out += line
+
 					line = ""
 				}
 
 				line += s[i] + " "
 			}
 
-			if len(strings.TrimSpace(line)) > 0 {
+			line = strings.TrimRight(line, " ")
+			if len(line) > 0 {
 				log.Infof("Split! %q from %q", line, l)
+
+				if !strings.HasSuffix(line, "\n") {
+					line += "\n"
+				}
 
 				out += line
 			}
 		} else {
-			if !strings.HasSuffix(l, "\n") {
-				l += "\n"
-			}
-
 			out += l
+
+			if !strings.HasSuffix(out, "\n") {
+				out += "\n"
+			}
 		}
 	}
 

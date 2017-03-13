@@ -6,13 +6,44 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-func TestTextParserScriptHandling(t *testing.T) {
+type testpair struct {
+	value  string
+	result string
+}
+
+func TestTextExtraction(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
-	type testpair struct {
-		value  string
-		result string
+	var tests = []testpair{
+		{
+			`An undocumented(test)`,
+			`An undocumented(test)`,
+		},
+		{
+			`An undocumented `,
+			`An undocumented `,
+		},
+		{
+			`Adventurer's clothes`,
+			`Adventurer's clothes`,
+		},
 	}
+
+	for _, pair := range tests {
+		v := getOnlyText(pair.value)
+		if v != pair.result {
+			t.Error(
+				"For", pair.value,
+				"expected", pair.result,
+				"got", v,
+			)
+		}
+	}
+
+}
+
+func TestTextTranslation(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
 
 	var tests = []testpair{
 		{

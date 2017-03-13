@@ -11,82 +11,6 @@ import (
 
 const eof = -1
 
-// item represents a token or text string returned from the scanner.
-type item struct {
-	typ itemType // The type of this item.
-	pos int
-	val string // The value of this item.
-}
-
-func (i item) String() string {
-	switch {
-	case i.typ == itemEOF:
-		return "EOF"
-	case i.typ == itemError:
-		return i.val
-	}
-
-	return fmt.Sprintf("{%s: %q}", i.typ, i.val)
-}
-
-// itemType identifies the type of lex items.
-type itemType int
-
-const (
-	itemError itemType = iota // error occurred; value is text of error
-	itemEOF
-	itemText
-	itemRawString
-	itemLeftDelim
-	itemRightDelim
-	itemLeftParen
-	itemRightParen
-	itemParameter
-	itemScript
-)
-
-func (t itemType) String() string {
-	switch t {
-	case itemError:
-		return "itemError"
-	case itemEOF:
-		return "itemEOF"
-	case itemText:
-		return "itemText"
-	case itemRawString:
-		return "itemRawString"
-	case itemLeftDelim:
-		return "itemLeftDelim"
-	case itemRightDelim:
-		return "itemRightDelim"
-	case itemLeftParen:
-		return "itemLeftParen"
-	case itemRightParen:
-		return "itemRightParen"
-	case itemParameter:
-		return "itemParameter"
-	case itemScript:
-		return "itemScript"
-	default:
-		panic(fmt.Sprintf("unknown item type: %d", t))
-	}
-}
-
-// stateFn represents the state of the scanner as a function that returns the next state.
-type stateFn func(*lexer) stateFn
-
-// lexer holds the state of the scanner.
-type lexer struct {
-	input      string    // the string being scanned
-	state      stateFn   // the next lexing function to enter
-	pos        int       // current position in the input
-	start      int       // start position of this item
-	width      int       // width of last rune read from input
-	lastPos    int       // position of most recent item returned by nextItem
-	items      chan item // channel of scanned items
-	parenDepth int
-}
-
 // next returns the next rune in the input.
 func (l *lexer) next() rune {
 	if l.pos >= len(l.input) {
@@ -95,7 +19,10 @@ func (l *lexer) next() rune {
 	}
 
 	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
+
+	l.mark = r
 	l.width = w
+
 	l.pos += l.width
 
 	return r
@@ -109,18 +36,39 @@ func (l *lexer) nextItem() item {
 	return item
 }
 
-// peek returns but does not consume the next rune in the input.
-func (l *lexer) peek() rune {
-	r := l.next()
+func (l *lexer) backup(pos int) {
+	for i := 0; i < pos; i++ {
+		l.pos -= l.width
+		if l.pos < 0 {
+			l.pos = 0
+		}
 
-	l.backup()
-
-	return r
+		r, w := utf8.DecodeRuneInString(l.input[l.pos:])
+		l.mark = r
+		l.width = w
+	}
 }
 
-// backup steps back one rune. Can only be called once per call of next.
-func (l *lexer) backup() {
-	l.pos -= l.width
+func (l *lexer) peek(locs int) rune {
+	pos := saveLexerPosition(l)
+
+	var r rune
+
+	x := 0
+
+	for x < locs {
+		l.next()
+
+		if x == locs-1 {
+			r = l.mark
+		}
+
+		x++
+	}
+
+	pos.restore(l)
+
+	return r
 }
 
 // emit passes an item back to the client.
@@ -141,7 +89,7 @@ func (l *lexer) accept(valid string) bool {
 		return true
 	}
 
-	l.backup()
+	l.backup(1)
 
 	return false
 }
@@ -151,7 +99,7 @@ func (l *lexer) acceptRun(valid string) {
 	for strings.ContainsRune(valid, l.next()) {
 	}
 
-	l.backup()
+	l.backup(1)
 }
 
 // errorf returns an error token and terminates the scan by passing
@@ -175,7 +123,9 @@ func lex(input string) *lexer {
 		input: input,
 		items: make(chan item),
 	}
+
 	go l.run()
+
 	return l
 }
 
@@ -199,9 +149,9 @@ Loop:
 		switch r := l.next(); {
 		case r == eof:
 			break Loop
-		case r == '"' || r == '\'':
+		case r == '"':
 			if l.pos > l.start {
-				l.backup()
+				l.backup(1)
 
 				if len(l.input[l.start:l.pos]) > 0 {
 					l.emit(itemText)
@@ -215,7 +165,7 @@ Loop:
 			return lexInsideAction
 		case r == '%':
 			if l.pos > l.start {
-				l.backup()
+				l.backup(1)
 
 				if len(l.input[l.start:l.pos]) > 0 {
 					l.emit(itemText)
@@ -233,32 +183,37 @@ Loop:
 				}
 			}
 		case r == 'i':
-			if r = l.peek(); r != eof && r != '\n' && r == 'f' {
-				l.backup()
+			// FIXME: This is really awful
+			if r = l.peek(1); r != eof && r != '\n' && r == 'f' {
+				if r = l.peek(2); r != eof && r != '\n' && r == '(' {
+					l.backup(1)
 
-				if l.pos > l.start {
-					l.emit(itemText)
+					if l.pos > l.start {
+						l.emit(itemText)
+					}
+
+					l.ignore()
+
+					return lexScript
 				}
-
-				l.ignore()
-
-				return lexScript
 			}
 		case r == 'e':
-			if r = l.peek(); r != eof && r != '\n' && r == 'n' {
-				l.backup()
+			if r = l.peek(1); r != eof && r != '\n' && r == 'n' {
+				if r = l.peek(2); r != eof && r != '\n' && r == '(' {
+					l.backup(1)
 
-				if l.pos > l.start {
-					l.emit(itemText)
+					if l.pos > l.start {
+						l.emit(itemText)
+					}
+
+					l.ignore()
+
+					return lexScript
 				}
-
-				l.ignore()
-
-				return lexScript
 			}
 		case r == '\\':
-			if r = l.peek(); r != eof && r != '\n' && r == '\\' {
-				l.backup()
+			if r = l.peek(1); r != eof && r != '\n' && r == '\\' {
+				l.backup(1)
 
 				if l.pos > l.start {
 					l.emit(itemText)
@@ -270,7 +225,7 @@ Loop:
 			}
 		case r == '\u3000' || r == '。' || r == '…' || r == '【' || r == '】' || r == '」' || r == '「' || r == '\n' || r == '(' || r == ')' || unicode.IsSymbol(r):
 			if l.pos > l.start {
-				l.backup()
+				l.backup(1)
 
 				if len(l.input[l.start:l.pos]) > 0 {
 					l.emit(itemText)
@@ -300,7 +255,11 @@ Loop:
 }
 
 func lexScript(l *lexer) stateFn {
-	log.Debugf("lexScript %q", l.input[l.pos:])
+	if l.pos < len(l.input) {
+		log.Debugf("lexScript %q", l.input[l.pos:])
+	} else {
+		log.Debugf("lexScript out of bounds %d/%d", l.pos, len(l.input))
+	}
 
 Loop:
 	for {
@@ -314,11 +273,11 @@ Loop:
 
 			return lexInsideAction
 		case '[':
-			l.backup()
+			l.backup(1)
 			l.emit(itemScript)
 			return lexLeftDelim
 		case '\\':
-			if r := l.peek(); r != eof && r != '\n' {
+			if r := l.peek(1); r != eof && r != '\n' {
 				switch r {
 				case '>', 'l', 'r', 't', '{', '}', '$', 'G', '.', '|', '^':
 					l.next()
@@ -391,7 +350,7 @@ func lexInsideAction(l *lexer) stateFn {
 			return lexText
 		}
 	case r == '[':
-		l.backup()
+		l.backup(1)
 
 		if l.pos > l.start {
 			l.emit(itemParameter)
@@ -401,7 +360,7 @@ func lexInsideAction(l *lexer) stateFn {
 
 		return lexLeftDelim
 	case r == ']':
-		l.backup()
+		l.backup(1)
 
 		if l.pos > l.start {
 			l.emit(itemParameter)
