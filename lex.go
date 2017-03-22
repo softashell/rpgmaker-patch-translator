@@ -104,6 +104,19 @@ func (l *lexer) accept(valid string) bool {
 	return false
 }
 
+// acceptRun consumes a run of runes from the valid set.
+func (l *lexer) acceptRun(valid string) {
+	count := 0
+
+	for strings.ContainsRune(valid, l.next()) {
+		count++
+	}
+
+	log.Debugf("Ending acceptRun after %d runes, last: %s", count, string(l.mark))
+
+	l.backup(1)
+}
+
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
@@ -167,11 +180,26 @@ Loop:
 
 			return lexScript
 		case r == '\\':
-			if r = l.peek(1); r == '\\' {
+			r = l.peek(1)
+
+			if r == '\\' {
 				l.emitBefore(itemText)
 
 				return lexScript
 			}
+
+			if r == 'u' {
+				log.Debug("Found escaped rune")
+
+				l.emitBefore(itemText)
+
+				l.next()
+
+				l.acceptRun("u0123456789")
+
+				l.emit(itemRawString)
+			}
+
 		case strings.ContainsRune("\u3000。…【】」「\n()", r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)
 
@@ -216,6 +244,12 @@ Loop:
 		case '\\':
 			if l.accept(">lrt{}$G.|^") {
 				log.Debug("Found escaped ", string(l.mark))
+				break Loop
+			}
+
+			if l.accept("u") {
+				l.acceptRun("u0123456789")
+
 				break Loop
 			}
 

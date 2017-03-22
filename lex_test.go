@@ -41,6 +41,10 @@ func TestRawTextExtraction(t *testing.T) {
 			`\\\>\\C[14]…今は使用できません。`,
 			`…今は使用できません。`,
 		},
+		{
+			`Basic Switch \u0026 Variable`,
+			`Basic Switch \u0026 Variable`,
+		},
 	}
 
 	for _, pair := range tests {

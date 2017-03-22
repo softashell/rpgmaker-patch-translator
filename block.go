@@ -8,9 +8,8 @@ import (
 )
 
 func parseBlock(block patchBlock) patchBlock {
-	//log.Debug(spew.Sdump(block))
 
-	if len(block.translation) < 2 {
+	if shouldTranslate(block.contexts) && len(block.translation) < 2 {
 		items := parseText(block.original)
 		block.translation = translateItems(items)
 
@@ -21,6 +20,19 @@ func parseBlock(block patchBlock) patchBlock {
 	//fmt.Scanln(&input)
 
 	return block
+}
+
+func shouldTranslate(contexts []string) bool {
+	for _, c := range contexts {
+		log.Debugf("%q", c)
+		if strings.HasSuffix(c, "_se/name/") ||
+			strings.HasSuffix(c, "/bgm/name/") ||
+			strings.HasSuffix(c, "_me/name/") {
+			return false
+		}
+	}
+
+	return true
 }
 
 func translateItems(items []item) string {
