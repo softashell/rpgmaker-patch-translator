@@ -27,6 +27,9 @@ func breakLines(text string) string {
 	for _, l := range strings.Split(text, "\n") {
 		// Remove any extra trailing new lines
 		l = strings.TrimRight(l, "\n")
+		if len(l) < 1 {
+			continue
+		}
 
 		// TODO: Avoid hardcoding character limit
 		if len(getOnlyText(l)) > 42 {
