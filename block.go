@@ -7,6 +7,12 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+type patchBlock struct {
+	original    string
+	contexts    []string
+	translation string
+}
+
 func parseBlock(block patchBlock) patchBlock {
 
 	if shouldTranslate(block.contexts) && len(block.translation) < 2 {

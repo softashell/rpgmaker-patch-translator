@@ -15,12 +15,6 @@ type patchFile struct {
 	blocks  []patchBlock
 }
 
-type patchBlock struct {
-	original    string
-	contexts    []string
-	translation string
-}
-
 func writePatchFile(patch patchFile) error {
 	log.Infof("Writing %s", patch.path)
 
