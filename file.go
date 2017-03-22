@@ -49,12 +49,15 @@ func writePatchFile(patch patchFile) error {
 			check(err)
 		}
 
-		if block.translated {
-			trans := breakLines(block.translation)
+		var trans string
 
-			_, err = w.WriteString(trans)
-			check(err)
+		if block.translated {
+			trans = breakLines(block.translation)
+		} else {
+			trans = "\n"
 		}
+		_, err = w.WriteString(trans)
+		check(err)
 
 		_, err = w.WriteString("> END STRING\n\n")
 		check(err)
