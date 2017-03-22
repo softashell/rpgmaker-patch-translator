@@ -188,11 +188,15 @@ Loop:
 				return lexScript
 			}
 
+			// These shouldn't even appear but google has sent me these back in translations
 			if r == 'u' {
 				log.Debug("Found escaped rune")
 
+				l.backup(1)
+
 				l.emitBefore(itemText)
 
+				l.next()
 				l.next()
 
 				l.acceptRun("u0123456789")
