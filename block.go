@@ -11,13 +11,15 @@ type patchBlock struct {
 	original    string
 	contexts    []string
 	translation string
+	translated  bool
 }
 
 func parseBlock(block patchBlock) patchBlock {
-
-	if shouldTranslate(block.contexts) && len(block.translation) < 2 {
+	if shouldTranslate(block) && len(block.translation) < 2 {
 		items := parseText(block.original)
+
 		block.translation = translateItems(items)
+		block.translated = true
 
 		log.Infof("'%s' => '%s'\n", block.original, block.translation)
 	}
@@ -28,8 +30,13 @@ func parseBlock(block patchBlock) patchBlock {
 	return block
 }
 
-func shouldTranslate(contexts []string) bool {
-	for _, c := range contexts {
+func shouldTranslate(block patchBlock) bool {
+	if block.translated {
+		log.Debug("Skipping translated block")
+		return false
+	}
+
+	for _, c := range block.contexts {
 		log.Debugf("%q", c)
 		if strings.HasSuffix(c, "_se/name/") ||
 			strings.HasSuffix(c, "/bgm/name/") ||

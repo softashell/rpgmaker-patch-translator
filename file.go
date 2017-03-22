@@ -40,7 +40,7 @@ func writePatchFile(patch patchFile) error {
 		for _, context := range block.contexts {
 			context = fmt.Sprintf("> CONTEXT: %s", context)
 
-			if len(strings.TrimRight(block.translation, "\n")) < 1 {
+			if !block.translated {
 				context += " < UNTRANSLATED\n"
 			} else {
 				context += "\n"
@@ -49,10 +49,12 @@ func writePatchFile(patch patchFile) error {
 			check(err)
 		}
 
-		trans := breakLines(block.translation)
+		if block.translated {
+			trans := breakLines(block.translation)
 
-		_, err = w.WriteString(trans)
-		check(err)
+			_, err = w.WriteString(trans)
+			check(err)
+		}
 
 		_, err = w.WriteString("> END STRING\n\n")
 		check(err)
@@ -117,7 +119,13 @@ func parsePatchFile(path string) (patchFile, error) {
 
 				block.original = orig
 				block.contexts = contexts
-				block.translation = trans
+
+				if len(strings.TrimRight(trans, "\n")) < 1 {
+					block.translation = ""
+				} else {
+					block.translated = true
+					block.translation = trans
+				}
 
 				//log.Info(spew.Sdump(block))
 
