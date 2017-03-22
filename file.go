@@ -46,7 +46,7 @@ func writePatchFile(patch patchFile) error {
 		for _, context := range block.contexts {
 			context = fmt.Sprintf("> CONTEXT: %s", context)
 
-			if len(block.translation) < 1 {
+			if len(strings.TrimRight(block.translation, "\n")) < 1 {
 				context += " < UNTRANSLATED\n"
 			} else {
 				context += "\n"
@@ -56,7 +56,6 @@ func writePatchFile(patch patchFile) error {
 		}
 
 		trans := breakLines(block.translation)
-		//		trans = strings.TrimRight(trans, "\n")
 
 		_, err = w.WriteString(trans)
 		check(err)
