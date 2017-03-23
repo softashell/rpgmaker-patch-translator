@@ -43,7 +43,7 @@ func TestRawTextExtraction(t *testing.T) {
 		},
 		{
 			`Basic Switch \u0026 Variable`,
-			`Basic Switch \u0026 Variable`,
+			`Basic Switch  Variable`,
 		},
 	}
 

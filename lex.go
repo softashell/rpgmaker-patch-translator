@@ -198,7 +198,7 @@ Loop:
 
 				l.acceptRun("u0123456789")
 
-				l.emit(itemRawString)
+				l.ignore()
 			}
 
 		case strings.ContainsRune("\u3000。…【】」「\n()", r) || unicode.IsSymbol(r):
