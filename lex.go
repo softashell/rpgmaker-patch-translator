@@ -192,11 +192,8 @@ Loop:
 			if r == 'u' {
 				log.Debug("Found escaped rune")
 
-				l.backup(1)
-
 				l.emitBefore(itemText)
 
-				l.next()
 				l.next()
 
 				l.acceptRun("u0123456789")
