@@ -165,11 +165,8 @@ Loop:
 			if l.accept("s") {
 				l.emit(itemRawString)
 			}
-		case r == 'i' && strings.HasPrefix(l.input[l.pos:], "f("):
-			l.emitBefore(itemText)
-
-			return lexScript
-		case r == 'e' && strings.HasPrefix(l.input[l.pos:], "n("):
+		case (r == 'i' && strings.HasPrefix(l.input[l.pos:], "f(")) ||
+			(r == 'e' && strings.HasPrefix(l.input[l.pos:], "n(")):
 			l.emitBefore(itemText)
 
 			return lexScript
@@ -195,7 +192,21 @@ Loop:
 				l.ignore()
 			}
 
-		case strings.ContainsRune("\u3000。…【】」「\n()", r) || unicode.IsSymbol(r):
+			if r == 'n' {
+				log.Debug("Found escaped newline")
+
+				l.emitBefore(itemText)
+
+				l.next()
+
+				l.accept("n")
+
+				l.acceptRun("[0123456789]")
+
+				l.emit(itemRawString)
+			}
+
+		case strings.ContainsRune("\u3000・！？。…【】「」『』\n()", r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)
 
 			l.next()
@@ -237,8 +248,13 @@ Loop:
 			l.emit(itemScript)
 			return lexLeftDelim
 		case '\\':
-			if l.accept(">lrt{}$G.|^") {
+			if l.accept("!<>blgnrt{}$BIG.|^") {
 				log.Debug("Found escaped ", string(l.mark))
+
+				if l.mark == 'n' {
+					l.acceptRun("[0123456789]")
+				}
+
 				break Loop
 			}
 
@@ -248,11 +264,19 @@ Loop:
 				break Loop
 			}
 
-			fallthrough
-		default:
-			if l.pos < len(l.input) {
-				log.Debug(string(l.input[l.pos]))
+			if l.accept("/") {
+				// Are they just escaping them wrong?
+				if l.accept("BIG") {
+					break Loop
+				}
 			}
+		case '\n':
+			l.acceptRun("[0123456789]")
+
+			break Loop
+
+		default:
+			log.Debug(string(l.mark))
 		}
 	}
 
