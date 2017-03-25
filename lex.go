@@ -235,8 +235,9 @@ func lexScript(l *lexer) stateFn {
 Loop:
 	for {
 		switch l.next() {
-		case eof, '\n':
-			return l.errorf("unterminated script")
+		case eof:
+			log.Warn("Script not terminated properly %q", l.input[l.start:])
+			break Loop
 		case '(':
 			l.emit(itemLeftParen)
 
