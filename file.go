@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -165,8 +166,41 @@ func translatePatch(patch patchFile) (patchFile, error) {
 		return patch, err
 	}
 
-	for i, block := range patch.blocks {
-		patch.blocks[i] = parseBlock(block)
+	// Only needed to preserve order in patch file
+	type blockWork struct {
+		id    int
+		block patchBlock
+	}
+
+	jobs := make(chan blockWork, runtime.NumCPU()*2)
+	results := make(chan blockWork, runtime.NumCPU()*2)
+
+	// Start workers
+	for w := 1; w <= runtime.NumCPU(); w++ {
+		go func(jobs <-chan blockWork, results chan<- blockWork) {
+			for j := range jobs {
+				j.block = parseBlock(j.block)
+				results <- j
+			}
+		}(jobs, results)
+	}
+
+	// Add blocks in background to job queue
+	go func() {
+		for i, block := range patch.blocks {
+			//patch.blocks[i] = parseBlock(block)
+			w := blockWork{i, block}
+			jobs <- w
+		}
+		close(jobs)
+	}()
+
+	// Start reading results, will block if there are none
+	for a := len(patch.blocks); a > 0; a-- {
+
+		j := <-results
+
+		patch.blocks[j.id] = j.block
 	}
 
 	return patch, err
