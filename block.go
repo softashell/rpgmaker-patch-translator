@@ -40,7 +40,8 @@ func shouldTranslate(block patchBlock) bool {
 		log.Debugf("%q", c)
 		if strings.HasSuffix(c, "_se/name/") ||
 			strings.HasSuffix(c, "/bgm/name/") ||
-			strings.HasSuffix(c, "_me/name/") {
+			strings.HasSuffix(c, "_me/name/") ||
+			strings.Index(c, "/InlineScript/") != -1 {
 			return false
 		}
 	}
