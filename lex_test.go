@@ -50,6 +50,18 @@ func TestRawTextExtraction(t *testing.T) {
 			`Basic Switch \u0026 Variable`,
 			`Basic Switch  Variable`,
 		},
+		{
+			`Mun「Ha～～～\\\\!`,
+			`Mun「Ha～～～`,
+		},
+		{
+			`Marcus「Hey there.……！\\\\!`,
+			`Marcus「Hey there.……！`,
+		},
+		{
+			`Yorkie「\"Suddenly it is a question, I have been worried since long ago`,
+			`Yorkie「\"Suddenly it is a question, I have been worried since long ago`,
+		},
 	}
 
 	for _, pair := range tests {
@@ -89,11 +101,11 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`%sを %s 回復した！`,
-			`を  回復した！`,
+			`を  回復した`,
 		},
 		{
 			`"お金を %s\\\\G 手に入れた！"`,
-			``,
+			`"お金を  手に入れた"`,
 		},
 		{
 			`'\\.'`,
@@ -101,7 +113,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`【\\C[14]\\N[2]\\C[0]】　\\{アハァァーーーンッ！！`,
-			`アハァァーーーンッ！！`,
+			`アハァァーーーンッ`,
 		},
 		{
 			`\\\>…「\\C[10]バッポウ\\C[0]」再出現カウント： \\C[3] \\V[491] \\C[0]\\\>\\\>　\\C[14]※出現場所：キータニ平原\\\>　\\C[14]※カウントが 0 になると再挑戦可能になります。`,
@@ -109,7 +121,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`【\\C[14]骨董屋\\C[0]】　「謎の防具」か。　ほぅ、複数持っているようだな。　一気に鑑定するかい？\\C[3] \\V[982] G\\C[0] 頂くけどな。\\$`,
-			`骨董屋謎の防具かほぅ、複数持っているようだな一気に鑑定するかい？  G 頂くけどな`,
+			`骨董屋謎の防具かほぅ、複数持っているようだな一気に鑑定するかい  G 頂くけどな`,
 		},
 		{
 			`【\\C[14]ザウナー\\C[0]】　\\}…待て待て、この場を乗り切るための詭弁さ。\\{　\\}すまないが、我慢して様子を見ててくれ。\\{　\\}必ず上手くいくさ。`,
@@ -117,11 +129,11 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`\\c[3]宿屋の主人\\c[0]ほほ～、シスターとは珍しい！\\lこんな辺鄙な島で布教活動かね？言っとくが、ワシは神など信じないぞ。`,
-			`宿屋の主人ほほ、シスターとは珍しい！こんな辺鄙な島で布教活動かね？言っとくが、ワシは神など信じないぞ`,
+			`宿屋の主人ほほ、シスターとは珍しいこんな辺鄙な島で布教活動かね言っとくが、ワシは神など信じないぞ`,
 		},
 		{
 			`0\\G 手に入れた！`,
-			`0 手に入れた！`,
+			`0 手に入れた`,
 		},
 		{
 			`\\\>牡丹の命が５回復した。\\|\\.\\^`,
@@ -137,11 +149,11 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`\\\\B\\\\I\\\\C[4]レジネッタ：\\\\C[0]\\\\/I\\\\/B\nあ……ふぁっ……！\n`,
-			`レジネッタ：あふぁっ！`,
+			`レジネッタ：あふぁっ`,
 		},
 		{
 			`\\\\Bポータルフリントを手に入れた！`,
-			`ポータルフリントを手に入れた！`,
+			`ポータルフリントを手に入れた`,
 		},
 	}
 
