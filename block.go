@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -16,16 +17,19 @@ type patchBlock struct {
 
 func parseBlock(block patchBlock) patchBlock {
 	if shouldTranslate(block) && len(block.translation) < 2 {
-		items := parseText(block.original)
+		items, err := parseText(block.original)
+		if err != nil {
+			log.Errorf("%s\ncontexts:\n%v\ntext: %q", err, block.contexts, block.original)
+			log.Error(spew.Sdump(items))
+
+			panic(err)
+		}
 
 		block.translation = translateItems(items)
 		block.translated = true
 
 		log.Infof("'%s' => '%s'\n", block.original, block.translation)
 	}
-
-	//var input string
-	//fmt.Scanln(&input)
 
 	return block
 }
@@ -86,19 +90,18 @@ func translateItems(items []item) string {
 	return out
 }
 
-func parseText(text string) []item {
+func parseText(text string) ([]item, error) {
 	l := lex(text)
 
 	var items []item
-
-	error := false
+	var err error
 
 	for {
 		item := l.nextItem()
 		items = append(items, item)
 
 		if item.typ == itemError {
-			error = true
+			err = fmt.Errorf("Failed to parse text")
 		}
 
 		if item.typ == itemEOF || item.typ == itemError {
@@ -106,11 +109,5 @@ func parseText(text string) []item {
 		}
 	}
 
-	if error {
-		log.Error(text)
-		log.Error(spew.Sdump(items))
-		panic("Failed to parse text")
-	}
-
-	return items
+	return items, err
 }

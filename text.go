@@ -4,10 +4,17 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func getOnlyText(text string) string {
-	items := parseText(text)
+	items, err := parseText(text)
+	if err != nil {
+		log.Errorf("%s\ntext: %q", err, text)
+		log.Error(spew.Sdump(items))
+
+		panic(err)
+	}
 
 	var out string
 

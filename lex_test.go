@@ -1,6 +1,11 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/davecgh/go-spew/spew"
+)
 
 type testpair struct {
 	value  string
@@ -130,10 +135,22 @@ func TestTranslatableTextExtraction(t *testing.T) {
 			`疾風苦無(消費1)　en(v[25] \>= 1)`,
 			`疾風苦無消費1`,
 		},
+		{
+			`\\\\B\\\\I\\\\C[4]レジネッタ：\\\\C[0]\\\\/I\\\\/B\nあ……ふぁっ……！\n`,
+			`レジネッタ：あふぁっ！`,
+		},
+		{
+			`\\\\Bポータルフリントを手に入れた！`,
+			`ポータルフリントを手に入れた！`,
+		},
 	}
 
 	for _, pair := range tests {
-		items := parseText(pair.value)
+		items, err := parseText(pair.value)
+		if err != nil {
+			log.Errorf("%s\ntext: %q", err, pair.value)
+			log.Error(spew.Sdump(items))
+		}
 
 		var v string
 
