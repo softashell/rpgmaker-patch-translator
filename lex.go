@@ -157,12 +157,6 @@ Loop:
 		switch r := l.next(); {
 		case r == eof:
 			break Loop
-		case r == '"':
-			l.emitBefore(itemText)
-
-			l.next()
-
-			return lexInsideAction
 		case r == '%':
 			l.emitBefore(itemText)
 
