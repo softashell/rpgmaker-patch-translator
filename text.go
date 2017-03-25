@@ -45,7 +45,7 @@ func breakLines(text string) string {
 			for i := range s {
 				// TODO: Ignore variables and functions when calculating len
 				if len(line)+len(s[i]) > 42 {
-					log.Infof("Split! %q from %q", line, l)
+					log.Debugf("Split! %q from %q", line, l)
 
 					if !strings.HasSuffix(line, "\n") {
 						line += "\n"
@@ -61,7 +61,7 @@ func breakLines(text string) string {
 
 			line = strings.TrimRight(line, " ")
 			if len(line) > 0 {
-				log.Infof("Split! %q from %q", line, l)
+				log.Debugf("Split! %q from %q", line, l)
 
 				if !strings.HasSuffix(line, "\n") {
 					line += "\n"
