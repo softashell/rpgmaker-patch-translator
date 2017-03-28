@@ -75,7 +75,7 @@ func writePatchFile(patch patchFile) error {
 }
 
 func parsePatchFile(file string) (patchFile, error) {
-	log.Infof("Parsing %q", path.Base(file))
+	log.Debugf("Parsing %q", path.Base(file))
 
 	f, err := os.Open(file)
 	defer f.Close()
@@ -189,7 +189,10 @@ func translatePatch(patch patchFile) (patchFile, error) {
 
 	count := len(patch.blocks)
 
-	bar := pb.StartNew(count)
+	bar := pb.New(count).
+		SetMaxWidth(80).
+		Prefix(path.Base(patch.path) + " ").
+		Start()
 
 	// Add blocks in background to job queue
 	go func() {

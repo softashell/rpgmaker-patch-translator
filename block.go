@@ -16,7 +16,7 @@ type patchBlock struct {
 }
 
 func parseBlock(block patchBlock) patchBlock {
-	if shouldTranslate(block) && len(block.translation) < 2 {
+	if shouldTranslate(block) {
 		items, err := parseText(block.original)
 		if err != nil {
 			log.Errorf("%s\ncontexts:\n%v\ntext: %q", err, block.contexts, block.original)

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -30,7 +31,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, file := range fileList {
+	count := len(fileList)
+	start := time.Now()
+
+	for i, file := range fileList {
+		fmt.Printf("Processing %q (%d/%d)\n", path.Base(file), i+1, count)
+
 		patch, err := parsePatchFile(file)
 		check(err)
 
@@ -39,9 +45,9 @@ func main() {
 
 		err = writePatchFile(patch)
 		check(err)
-
-		log.Infof("Translated %q", path.Base(file))
 	}
+
+	fmt.Printf("Finished in %s", time.Since(start))
 }
 
 func checkPatchVersion(dir string) error {
