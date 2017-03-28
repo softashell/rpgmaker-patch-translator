@@ -165,11 +165,13 @@ func parsePatchFile(file string) (patchFile, error) {
 func translatePatch(patch patchFile) (patchFile, error) {
 	var err error
 
+	/* TODO: Add option to skip unsafe scripts (everything but vocab)
 	if strings.HasSuffix(patch.path, "Scripts.txt") {
 		fmt.Println("Skipped")
 
 		return patch, err
 	}
+	*/
 
 	// Only needed to preserve order in patch file
 	type blockWork struct {

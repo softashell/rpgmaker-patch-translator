@@ -49,6 +49,10 @@ func shouldTranslate(block patchBlock) bool {
 			strings.Contains(c, "/InlineScript/") {
 			return false
 		}
+
+		if strings.HasPrefix(c, "Scripts/") && !strings.Contains(c, "Vocab/") {
+			return false
+		}
 	}
 
 	return true
