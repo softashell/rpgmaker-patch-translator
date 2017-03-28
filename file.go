@@ -198,7 +198,7 @@ func translatePatch(patch patchFile) (patchFile, error) {
 	count := len(patch.blocks)
 
 	bar := p.AddBar(int64(count)).
-		PrependCounters("%3s/%3s", 0, 10, mpb.DwidthSync|mpb.DextraSpace).
+		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace).
 		AppendETA(2, 0)
 
 	// Add blocks in background to job queue
