@@ -7,9 +7,10 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"gopkg.in/cheggaaa/pb.v1"
+	"gopkg.in/vbauerster/mpb.v2"
 )
 
 type patchFile struct {
@@ -187,12 +188,14 @@ func translatePatch(patch patchFile) (patchFile, error) {
 		}(jobs, results)
 	}
 
+	p := mpb.New().
+		RefreshRate(500 * time.Millisecond)
+
 	count := len(patch.blocks)
 
-	bar := pb.New(count).
-		SetMaxWidth(80).
-		Prefix(path.Base(patch.path) + " ").
-		Start()
+	bar := p.AddBar(int64(count)).
+		PrependCounters("%3s/%3s", 0, 10, mpb.DwidthSync|mpb.DextraSpace).
+		AppendETA(2, 0)
 
 	// Add blocks in background to job queue
 	go func() {
@@ -211,10 +214,10 @@ func translatePatch(patch patchFile) (patchFile, error) {
 
 		patch.blocks[j.id] = j.block
 
-		bar.Increment()
+		bar.Incr(1)
 	}
 
-	bar.Finish()
+	p.Stop()
 
 	return patch, err
 }
