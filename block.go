@@ -22,13 +22,14 @@ func parseBlock(block patchBlock) patchBlock {
 			log.Errorf("%s\ncontexts:\n%v\ntext: %q", err, block.contexts, block.original)
 			log.Error(spew.Sdump(items))
 
+			// TODO: Avoid panic here and just log the offending block to file along with debug info
 			panic(err)
 		}
 
 		block.translation = translateItems(items)
 		block.translated = true
 
-		log.Infof("'%s' => '%s'\n", block.original, block.translation)
+		log.Debugf("'%s' => '%s'\n", block.original, block.translation)
 	}
 
 	return block

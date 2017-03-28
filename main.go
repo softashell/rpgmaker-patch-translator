@@ -31,7 +31,6 @@ func main() {
 	}
 
 	for _, file := range fileList {
-		//		go func(file string) {
 		patch, err := parsePatchFile(file)
 		check(err)
 
@@ -41,11 +40,7 @@ func main() {
 		err = writePatchFile(patch)
 		check(err)
 
-		log.Info("Translated ", file)
-		//		}(file)
-
-		//var input string
-		//fmt.Scanln(&input)
+		log.Infof("Translated %q", path.Base(file))
 	}
 }
 

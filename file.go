@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"gopkg.in/cheggaaa/pb.v1"
 )
 
 type patchFile struct {
@@ -17,7 +19,7 @@ type patchFile struct {
 }
 
 func writePatchFile(patch patchFile) error {
-	log.Infof("Writing %s", patch.path)
+	log.Debugf("Writing %s", patch.path)
 
 	err := os.Remove(patch.path)
 	check(err)
@@ -67,18 +69,18 @@ func writePatchFile(patch patchFile) error {
 	err = w.Flush()
 	check(err)
 
-	log.Infof("Done writing %s", patch.path)
+	log.Debugf("Done writing %s", patch.path)
 
 	return nil
 }
 
-func parsePatchFile(path string) (patchFile, error) {
-	log.Info("Parsing", path)
+func parsePatchFile(file string) (patchFile, error) {
+	log.Infof("Parsing %q", path.Base(file))
 
-	f, err := os.Open(path)
+	f, err := os.Open(file)
 	defer f.Close()
 
-	file := patchFile{path: path}
+	patch := patchFile{path: file}
 
 	s := bufio.NewScanner(f)
 	s.Split(bufio.ScanLines)
@@ -100,7 +102,7 @@ func parsePatchFile(path string) (patchFile, error) {
 
 			switch {
 			case strings.HasPrefix(l, "RPGMAKER TRANS PATCH FILE VERSION"):
-				file.version = l
+				patch.version = l
 			case strings.HasPrefix(l, "BEGIN STRING"):
 				original = true
 			case strings.HasPrefix(l, "CONTEXT: "):
@@ -133,7 +135,7 @@ func parsePatchFile(path string) (patchFile, error) {
 
 				//log.Info(spew.Sdump(block))
 
-				file.blocks = append(file.blocks, block)
+				patch.blocks = append(patch.blocks, block)
 
 				orig = ""
 				trans = ""
@@ -156,7 +158,7 @@ func parsePatchFile(path string) (patchFile, error) {
 		}
 	}
 
-	return file, err
+	return patch, err
 }
 
 func translatePatch(patch patchFile) (patchFile, error) {
@@ -185,6 +187,10 @@ func translatePatch(patch patchFile) (patchFile, error) {
 		}(jobs, results)
 	}
 
+	count := len(patch.blocks)
+
+	bar := pb.StartNew(count)
+
 	// Add blocks in background to job queue
 	go func() {
 		for i, block := range patch.blocks {
@@ -196,12 +202,16 @@ func translatePatch(patch patchFile) (patchFile, error) {
 	}()
 
 	// Start reading results, will block if there are none
-	for a := len(patch.blocks); a > 0; a-- {
+	for a := count; a > 0; a-- {
 
 		j := <-results
 
 		patch.blocks[j.id] = j.block
+
+		bar.Increment()
 	}
+
+	bar.Finish()
 
 	return patch, err
 }
