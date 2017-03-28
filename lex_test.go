@@ -105,7 +105,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`"お金を %s\\\\G 手に入れた！"`,
-			`"お金を  手に入れた"`,
+			`お金を  手に入れた`,
 		},
 		{
 			`'\\.'`,
