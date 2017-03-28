@@ -166,6 +166,8 @@ func translatePatch(patch patchFile) (patchFile, error) {
 	var err error
 
 	if strings.HasSuffix(patch.path, "Scripts.txt") {
+		fmt.Println("Skipped")
+
 		return patch, err
 	}
 
@@ -190,6 +192,8 @@ func translatePatch(patch patchFile) (patchFile, error) {
 
 	p := mpb.New().
 		RefreshRate(500 * time.Millisecond)
+
+	defer p.Stop()
 
 	count := len(patch.blocks)
 
@@ -216,8 +220,6 @@ func translatePatch(patch patchFile) (patchFile, error) {
 
 		bar.Incr(1)
 	}
-
-	p.Stop()
 
 	return patch, err
 }

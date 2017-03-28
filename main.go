@@ -50,7 +50,7 @@ func main() {
 		check(err)
 	}
 
-	fmt.Printf("Finished in %s", time.Since(start))
+	fmt.Printf("Finished in %s\n", time.Since(start))
 }
 
 func checkPatchVersion(dir string) error {
