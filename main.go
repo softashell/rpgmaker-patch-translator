@@ -66,7 +66,7 @@ func checkPatchVersion(dir string) error {
 func getDirectoryContents(dir string) []string {
 	fileList := []string{}
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		if f.IsDir() {
+		if f.IsDir() || filepath.Ext(path) != ".txt" {
 			return nil
 		}
 
