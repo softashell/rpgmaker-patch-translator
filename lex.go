@@ -206,7 +206,7 @@ Loop:
 				l.emit(itemRawString)
 			}
 
-		case strings.ContainsRune("\u3000（）・！？。…【】「」『』\n()", r) || unicode.IsSymbol(r):
+		case strings.ContainsRune("\u3000（）・！？。…【】「」『』\n()/", r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)
 
 			l.next()

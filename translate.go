@@ -1,7 +1,10 @@
 package main
 
 import (
+	"regexp"
 	"strings"
+
+	"golang.org/x/text/width"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/parnurzeal/gorequest"
@@ -21,7 +24,7 @@ type translateResponse struct {
 }
 
 func translateString(text string) (string, error) {
-	if len(strings.TrimSpace(text)) < 1 {
+	if !shouldTranslateText(text) {
 		return text, nil
 	}
 
@@ -47,4 +50,27 @@ func translateString(text string) (string, error) {
 	out := response.TranslationText
 
 	return out, nil
+}
+
+func shouldTranslateText(text string) bool {
+	text = strings.TrimSpace(text)
+
+	if len(text) < 1 {
+		return false
+	}
+
+	text = width.Narrow.String(text)
+
+	if !isJapanese(text) {
+		return false
+	}
+
+	return true
+}
+
+func isJapanese(text string) bool {
+	regex := regexp.MustCompile(`(\p{Hiragana}|\p{Katakana}|\p{Han})`)
+	matches := regex.FindAllString(text, 1)
+
+	return len(matches) >= 1
 }
