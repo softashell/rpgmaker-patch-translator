@@ -23,7 +23,10 @@ func main() {
 	dir := os.Args[1]
 
 	err := checkPatchVersion(dir)
-	check(err)
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
 
 	fileList := getDirectoryContents(path.Join(dir, "Patch"))
 	if len(fileList) < 1 {
