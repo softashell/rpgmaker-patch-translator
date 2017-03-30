@@ -116,8 +116,6 @@ func (l *lexer) acceptRun(valid string) {
 		count++
 	}
 
-	log.Debugf("Ending acceptRun after %d runes, last: %s", count, string(l.mark))
-
 	l.backup(1)
 }
 

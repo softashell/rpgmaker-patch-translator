@@ -31,50 +31,82 @@ func getOnlyText(text string) string {
 func breakLines(text string) string {
 	var out string
 
-	for _, l := range strings.Split(text, "\n") {
+	lines := strings.Split(text, "\n")
+
+	for n, l := range lines {
 		// Remove any extra trailing new lines
 		l = strings.TrimRight(l, "\n")
 		if len(l) < 1 {
 			continue
 		}
 
-		// TODO: Avoid hardcoding character limit
-		if len(getOnlyText(l)) > 42 {
-			line := ""
-			s := strings.Split(l, " ")
-			for i := range s {
-				// TODO: Ignore variables and functions when calculating len
-				if len(line)+len(s[i]) > 42 {
-					log.Debugf("Split! %q from %q", line, l)
+		items, err := parseText(l)
+		if err != nil {
+			log.Errorf("%s\ntext: %q", err, l)
+			log.Error(spew.Sdump(items))
 
-					if !strings.HasSuffix(line, "\n") {
-						line += "\n"
+			panic(err)
+		}
+
+		log.Debug(spew.Sdump(items))
+
+		var justText string
+		var line string
+
+		for _, item := range items {
+			log.Debugf("type: %q value: %q", item.typ, item.val)
+
+			switch item.typ {
+			case itemText, itemRawString:
+				if len([]rune(justText))+len([]rune(item.val)) > 42 {
+					log.Debugf("Trying to split %q from %q", item.val, l)
+					s := strings.Split(item.val, " ")
+					for i := range s {
+						if len([]rune(justText))+len([]rune(s[i])) > 42 {
+							line = strings.TrimRight(line, " ")
+
+							log.Debugf("Split! %q from %q", line, l)
+
+							if !strings.HasSuffix(line, "\n") {
+								line += "\n"
+							}
+
+							out += line
+
+							line = ""
+							justText = ""
+						}
+
+						line += s[i]
+						justText += s[i]
+
+						if i+1 < len(s) {
+							line += " "
+							justText += " "
+						}
 					}
-
+				} else {
 					out += line
+					out += item.val
 
 					line = ""
+					justText += item.val
 				}
-
-				line += s[i] + " "
+			default:
+				out += item.val
 			}
+		}
 
-			line = strings.TrimRight(line, " ")
-			if len(line) > 0 {
-				log.Debugf("Split! %q from %q", line, l)
+		line = strings.TrimRight(line, " ")
+		if len(line) > 0 {
+			log.Debugf("Split! Trailing %q from %q", line, l)
 
-				if !strings.HasSuffix(line, "\n") {
-					line += "\n"
-				}
+			out += line
+		}
 
-				out += line
-			}
-		} else {
-			out += l
+		if n+1 < len(lines) {
+			out += "\n"
 
-			if !strings.HasSuffix(out, "\n") {
-				out += "\n"
-			}
 		}
 	}
 
