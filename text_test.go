@@ -1,14 +1,8 @@
 package main
 
-import (
-	"testing"
-
-	log "github.com/Sirupsen/logrus"
-)
+import "testing"
 
 func TestLineBreaking(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-
 	var tests = []struct {
 		text   string
 		result string
