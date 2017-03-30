@@ -23,6 +23,8 @@ func (i item) String() string {
 // itemType identifies the type of lex items.
 type itemType int
 
+const eof = -1
+
 const (
 	itemError itemType = iota // error occurred; value is text of error
 	itemEOF

@@ -155,6 +155,14 @@ func TestTranslatableTextExtraction(t *testing.T) {
 			`\\\\Bポータルフリントを手に入れた！`,
 			`ポータルフリントを手に入れた`,
 		},
+		{
+			`\\name[優理香]懐かしいなぁ。`,
+			`優理香懐かしいなぁ`,
+		},
+		{
+			`PT加入en(!s[484] and v[25] <2)`,
+			`PT加入`,
+		},
 	}
 
 	for _, pair := range tests {
@@ -162,6 +170,8 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		if err != nil {
 			log.Errorf("%s\ntext: %q", err, pair.value)
 			log.Error(spew.Sdump(items))
+		} else {
+			log.Debug(spew.Sdump(items))
 		}
 
 		var v string

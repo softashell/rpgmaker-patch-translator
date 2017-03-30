@@ -9,7 +9,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-const eof = -1
+const (
+	/* TODO: Maybe remove [] and () from this and handle them differently
+	since it may break things that shouldn't be translated */
+	slashCharacters = "0123456789[]{}()\\/<>abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY!|$^."
+)
 
 // next returns the next rune in the input.
 func (l *lexer) next() rune {
@@ -157,7 +161,7 @@ Loop:
 		switch r := l.next(); {
 		case r == eof:
 			break Loop
-		case r == '%':
+		case r == '%' && l.peek(1) == 's':
 			l.emitBefore(itemText)
 
 			l.next()
@@ -206,7 +210,7 @@ Loop:
 				l.emit(itemRawString)
 			}
 
-		case strings.ContainsRune("\u3000（）・！？。…【】「」『』\n()/\"", r) || unicode.IsSymbol(r):
+		case strings.ContainsRune("\u3000（）・！？。…【】「」『』\n()/\"[]", r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)
 
 			l.next()
@@ -239,6 +243,10 @@ Loop:
 			log.Warn("Script not terminated properly %q", l.input[l.start:])
 			break Loop
 		case '(':
+			l.emitBefore(itemScript)
+
+			l.next()
+
 			l.emit(itemLeftParen)
 
 			l.parenDepth++
@@ -247,30 +255,12 @@ Loop:
 		case '[':
 			l.backup(1)
 			l.emit(itemScript)
+
 			return lexLeftDelim
 		case '\\':
-			if l.accept("!<>blgnrt{}$BIG.|^") {
-				log.Debug("Found escaped ", string(l.mark))
+			l.acceptRun(slashCharacters)
 
-				if l.mark == 'n' {
-					l.acceptRun("[0123456789]")
-				}
-
-				break Loop
-			}
-
-			if l.accept("u") {
-				l.acceptRun("u0123456789")
-
-				break Loop
-			}
-
-			if l.accept("/") {
-				// Are they just escaping them wrong?
-				if l.accept("BIG") {
-					break Loop
-				}
-			}
+			break Loop
 		case '\n':
 			l.acceptRun("[0123456789]")
 
@@ -320,10 +310,20 @@ func lexInsideAction(l *lexer) stateFn {
 	case r == eof:
 		return l.errorf("unclosed action")
 	case r == '(':
+		l.emitBefore(itemParameter)
+
+		l.next()
+
 		l.emit(itemLeftParen)
+
 		l.parenDepth++
 	case r == ')':
+		l.emitBefore(itemParameter)
+
+		l.next()
+
 		l.emit(itemRightParen)
+
 		l.parenDepth--
 
 		if l.parenDepth < 0 {
