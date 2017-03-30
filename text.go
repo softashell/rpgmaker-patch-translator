@@ -70,46 +70,51 @@ func breakLine(text string) string {
 	for _, item := range items {
 		switch item.typ {
 		case itemText, itemRawString:
-			if len([]rune(justText))+len([]rune(item.val)) > 42 {
-				log.Debugf("Trying to split %q from %q", item.val, text)
-				s := strings.Split(item.val, " ")
-				for i := range s {
-					if len([]rune(justText))+len([]rune(s[i])) > 42 {
-						line = strings.TrimRight(line, " ")
-
-						log.Debugf("Split! %q from %q", line, text)
-
-						if !strings.HasSuffix(line, "\n") {
-							line += "\n"
-						}
-
-						out += line
-
-						line = ""
-						justText = ""
-					}
-
-					line += s[i]
-					justText += s[i]
-
-					if i+1 < len(s) {
-						line += " "
-						justText += " "
-					}
-				}
-			} else {
+			if len([]rune(justText+item.val)) <= 42 {
 				out += line
 				out += item.val
 
 				line = ""
 				justText += item.val
+
+				break
+			}
+
+			log.Debugf("Trying to split %q from %q", item.val, text)
+
+			words := strings.Split(item.val, " ")
+			for i := range words {
+				if len([]rune(justText+words[i])) <= 42 {
+					line += words[i]
+					justText += words[i]
+
+					if i+1 < len(words) {
+						line += " "
+						justText += " "
+					}
+
+					continue
+				}
+
+				line = strings.TrimRight(line, " ")
+
+				log.Debugf("Split! %q from %q", line, text)
+
+				if !strings.HasSuffix(line, "\n") {
+					line += "\n"
+				}
+
+				out += line
+
+				line = ""
+				justText = ""
+
 			}
 		default:
 			out += item.val
 		}
 	}
 
-	line = strings.TrimRight(line, " ")
 	if len(line) > 0 {
 		log.Debugf("Split! Trailing %q from %q", line, text)
 
