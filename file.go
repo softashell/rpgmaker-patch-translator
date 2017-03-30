@@ -56,7 +56,11 @@ func writePatchFile(patch patchFile) error {
 		var trans string
 
 		if block.translated {
-			trans = breakLines(block.translation)
+			if block.touched {
+				trans = breakLines(block.translation)
+			} else {
+				trans = block.translation
+			}
 		} else {
 			trans = "\n"
 		}

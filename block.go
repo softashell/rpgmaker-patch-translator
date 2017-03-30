@@ -13,6 +13,7 @@ type patchBlock struct {
 	contexts    []string
 	translation string
 	translated  bool
+	touched     bool
 }
 
 func parseBlock(block patchBlock) patchBlock {
@@ -20,6 +21,7 @@ func parseBlock(block patchBlock) patchBlock {
 		items, err := parseText(block.original)
 		if err != nil {
 			log.Errorf("%s\ncontexts:\n%v\ntext: %q", err, block.contexts, block.original)
+			log.Error(spew.Sdump(block))
 			log.Error(spew.Sdump(items))
 
 			// TODO: Avoid panic here and just log the offending block to file along with debug info
@@ -28,6 +30,7 @@ func parseBlock(block patchBlock) patchBlock {
 
 		block.translation = translateItems(items)
 		block.translated = true
+		block.touched = true
 
 		log.Debugf("'%s' => '%s'\n", block.original, block.translation)
 	}
@@ -42,7 +45,7 @@ func shouldTranslate(block patchBlock) bool {
 	}
 
 	for _, c := range block.contexts {
-		log.Debugf("%q", c)
+		//log.Debugf("%q", c)
 		if strings.HasSuffix(c, "_se/name/") ||
 			strings.HasSuffix(c, "/bgm/name/") ||
 			strings.HasSuffix(c, "_me/name/") ||
