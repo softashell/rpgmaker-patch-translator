@@ -84,7 +84,11 @@ func breakLine(text string) string {
 
 			words := strings.Split(item.val, " ")
 			for i := range words {
+				log.Debug("word: ", i+1, " / ", len(words), " len:", len([]rune(justText+words[i])))
+
 				if len([]rune(justText+words[i])) <= 42 {
+					log.Debugf("adding %q", words[i])
+
 					line += words[i]
 					justText += words[i]
 
@@ -96,19 +100,20 @@ func breakLine(text string) string {
 					continue
 				}
 
+				log.Debugf("Word %q was too long to fit! Added a new line before it", words[i])
+
 				line = strings.TrimRight(line, " ")
-
-				log.Debugf("Split! %q from %q", line, text)
-
-				if !strings.HasSuffix(line, "\n") {
-					line += "\n"
-				}
+				line += "\n"
 
 				out += line
 
-				line = ""
-				justText = ""
+				line = words[i]
+				justText = words[i]
 
+				if i+1 < len(words) {
+					line += " "
+					justText += " "
+				}
 			}
 		default:
 			out += item.val

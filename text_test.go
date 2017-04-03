@@ -17,6 +17,31 @@ func TestLineBreaking(t *testing.T) {
 			`"Money %s\\\\G I got！"`,
 			`"Money %s\\\\G I got！"`,
 		},
+		{
+			`☆【A whip】Bamboo that manipulates
+thunder。 Get Lightning Lv 20。
+attack:＋80 Mausoleum:＋８０ （Blow）（Overall）（Thunder）（Stan）`,
+			`☆【A whip】Bamboo that manipulates
+thunder。 Get Lightning Lv 20。
+attack:＋80 Mausoleum:＋８０ （Blow）（Overall）（
+Thunder）（Stan）`,
+		},
+		{
+			`【dagger】It is rusty and its sharpness
+【dagger】It is rusty and its sharpness is dull but it will not get stuck。
+ attack:＋４ （Slashing）（Speed↑）`,
+			`【dagger】It is rusty and its sharpness
+【dagger】It is rusty and its sharpness is
+dull but it will not get stuck。
+ attack:＋４ （Slashing）（Speed↑）`,
+		},
+		{
+			`【sword】If you equip it, you will get an assault lance song Lv 7。
+attack:＋５６ （Slashing）（hit↑）`,
+			`【sword】If you equip it, you will get an
+assault lance song Lv 7。
+attack:＋５６ （Slashing）（hit↑）`,
+		},
 	}
 
 	for _, pair := range tests {
