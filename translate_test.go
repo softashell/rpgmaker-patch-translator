@@ -39,3 +39,37 @@ func TestShouldTranslateText(t *testing.T) {
 	}
 
 }
+
+func TestCleanTranslatedText(t *testing.T) {
+	type testpair struct {
+		text   string
+		result string
+	}
+
+	var tests = []testpair{
+		{
+			`test`,
+			`test`,
+		},
+		{
+			" ",
+			" ",
+		},
+		{
+			"あの――",
+			"あの――",
+		},
+		{
+			`a good idea of ​​a magician`,
+			`a good idea of a magician`,
+		},
+	}
+
+	for _, pair := range tests {
+		r := cleanTranslation(pair.text)
+		if r != pair.result {
+			t.Errorf("For %q expected %q got %q", pair.text, pair.result, r)
+		}
+	}
+
+}

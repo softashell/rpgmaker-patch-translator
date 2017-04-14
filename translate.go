@@ -3,6 +3,7 @@ package main
 import (
 	"regexp"
 	"strings"
+	"unicode"
 
 	"golang.org/x/text/width"
 
@@ -48,6 +49,7 @@ func translateString(text string) (string, error) {
 	}
 
 	out := response.TranslationText
+	out = cleanTranslation(out)
 
 	return out, nil
 }
@@ -61,11 +63,7 @@ func shouldTranslateText(text string) bool {
 
 	text = width.Narrow.String(text)
 
-	if !isJapanese(text) {
-		return false
-	}
-
-	return true
+	return isJapanese(text)
 }
 
 func isJapanese(text string) bool {
@@ -73,4 +71,19 @@ func isJapanese(text string) bool {
 	matches := regex.FindAllString(text, 1)
 
 	return len(matches) >= 1
+}
+
+func cleanTranslation(text string) string {
+	// Removes any rune that isn't printable or a space
+	isValid := func(r rune) rune {
+		if !unicode.IsPrint(r) && !unicode.IsSpace(r) {
+			return -1
+		}
+
+		return r
+	}
+
+	text = strings.Map(isValid, text)
+
+	return text
 }
