@@ -28,6 +28,16 @@ func getOnlyText(text string) string {
 	return out
 }
 
+func shouldBreakLines(contexts []string) bool {
+	for _, c := range contexts {
+		if strings.Contains(c, "GameINI/Title") || strings.Contains(c, "System/game_title/") {
+			return false
+		}
+	}
+
+	return true
+}
+
 func breakLines(text string) string {
 	var out string
 

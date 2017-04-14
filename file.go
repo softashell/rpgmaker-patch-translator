@@ -56,7 +56,7 @@ func writePatchFile(patch patchFile) error {
 		var trans string
 
 		if block.translated {
-			if block.touched {
+			if block.touched && shouldBreakLines(block.contexts) {
 				trans = breakLines(block.translation)
 				if !strings.HasSuffix(trans, "\n") {
 					trans += "\n"
