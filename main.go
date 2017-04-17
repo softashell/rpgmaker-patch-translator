@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -28,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fileList := getDirectoryContents(path.Join(dir, "Patch"))
+	fileList := getDirectoryContents(filepath.Join(dir, "Patch"))
 	if len(fileList) < 1 {
 		log.Error("Couldn't find anything to translate")
 		os.Exit(1)
@@ -38,7 +37,7 @@ func main() {
 	start := time.Now()
 
 	for i, file := range fileList {
-		fmt.Printf("Processing %q (%d/%d)\n", path.Base(file), i+1, count)
+		fmt.Printf("Processing %q (%d/%d)\n", filepath.Base(file), i+1, count)
 
 		patch, err := parsePatchFile(file)
 		check(err)
@@ -54,7 +53,7 @@ func main() {
 }
 
 func checkPatchVersion(dir string) error {
-	contents, err := ioutil.ReadFile(path.Join(dir, "RPGMKTRANSPATCH"))
+	contents, err := ioutil.ReadFile(filepath.Join(dir, "RPGMKTRANSPATCH"))
 	if err != nil {
 		return err
 	}

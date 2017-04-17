@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -83,7 +83,7 @@ func writePatchFile(patch patchFile) error {
 }
 
 func parsePatchFile(file string) (patchFile, error) {
-	log.Debugf("Parsing %q", path.Base(file))
+	log.Debugf("Parsing %q", filepath.Base(file))
 
 	f, err := os.Open(file)
 	defer f.Close()
