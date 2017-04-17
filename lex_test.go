@@ -8,8 +8,8 @@ import (
 )
 
 type testpair struct {
-	value  string
-	result string
+	input  string
+	output string
 }
 
 func TestRawTextExtraction(t *testing.T) {
@@ -65,13 +65,9 @@ func TestRawTextExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		v := getOnlyText(pair.value)
-		if v != pair.result {
-			t.Error(
-				"For", pair.value,
-				"expected", pair.result,
-				"got", v,
-			)
+		r := getOnlyText(pair.input)
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
 	}
 
@@ -166,28 +162,24 @@ func TestTranslatableTextExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		items, err := parseText(pair.value)
+		items, err := parseText(pair.input)
 		if err != nil {
-			log.Errorf("%s\ntext: %q", err, pair.value)
+			log.Errorf("%s\ntext: %q", err, pair.input)
 			log.Error(spew.Sdump(items))
 		} else {
 			log.Debug(spew.Sdump(items))
 		}
 
-		var v string
+		var r string
 
 		for _, item := range items {
 			if item.typ == itemText {
-				v += item.val
+				r += item.val
 			}
 		}
 
-		if v != pair.result {
-			t.Error(
-				"For", pair.value,
-				"expected", pair.result,
-				"got", v,
-			)
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
 	}
 }

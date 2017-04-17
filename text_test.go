@@ -4,8 +4,8 @@ import "testing"
 
 func TestLineBreaking(t *testing.T) {
 	var tests = []struct {
-		text   string
-		result string
+		input  string
+		output string
 	}{
 		{
 			`\\name[Domestic scent]（…Properly……I want to take a bath……
@@ -45,9 +45,9 @@ attack:＋５６ （Slashing）（hit↑）`,
 	}
 
 	for _, pair := range tests {
-		r := breakLines(pair.text)
-		if r != pair.result {
-			t.Errorf("For\n%q\nexpected\n%q\ngot\n%q\n", pair.text, pair.result, r)
+		r := breakLines(pair.input)
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
 	}
 

@@ -42,8 +42,8 @@ func TestShouldTranslateText(t *testing.T) {
 
 func TestCleanTranslatedText(t *testing.T) {
 	type testpair struct {
-		text   string
-		result string
+		input  string
+		output string
 	}
 
 	var tests = []testpair{
@@ -66,9 +66,9 @@ func TestCleanTranslatedText(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		r := cleanTranslation(pair.text)
-		if r != pair.result {
-			t.Errorf("For %q expected %q got %q", pair.text, pair.result, r)
+		r := cleanTranslation(pair.input)
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
 	}
 
