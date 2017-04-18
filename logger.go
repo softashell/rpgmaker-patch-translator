@@ -27,7 +27,7 @@ func logBlockError(err error, args ...interface{}) {
 
 	log.Error(out)
 
-	f, err := os.OpenFile("errors.txt", os.O_CREATE|os.O_WRONLY, 0600)
+	f, err := os.OpenFile("errors.txt", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		log.Error("Unable to open error log file", err)
 		return
