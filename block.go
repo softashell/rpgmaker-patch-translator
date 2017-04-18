@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type patchBlock struct {
@@ -19,13 +18,11 @@ type patchBlock struct {
 func parseBlock(block patchBlock) patchBlock {
 	if shouldTranslate(block) {
 		items, err := parseText(block.original)
-		if err != nil {
-			log.Errorf("%s\ncontexts:\n%v\ntext: %q", err, block.contexts, block.original)
-			log.Error(spew.Sdump(block))
-			log.Error(spew.Sdump(items))
 
-			// TODO: Avoid panic here and just log the offending block to file along with debug info
-			panic(err)
+		if err != nil {
+			logBlockError(err, block, items)
+
+			return block
 		}
 
 		block.translation = translateItems(items)

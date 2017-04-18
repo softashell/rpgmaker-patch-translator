@@ -11,26 +11,21 @@ import (
 )
 
 func main() {
-	//	log.SetLevel(log.DebugLevel)
-
 	args := os.Args
 	if len(args) < 2 {
-		log.Error("Program requires patch directory as argument")
-		os.Exit(1)
+		log.Fatal("Program requires patch directory as argument")
 	}
 
 	dir := os.Args[1]
 
 	err := checkPatchVersion(dir)
 	if err != nil {
-		log.Error(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	fileList := getDirectoryContents(filepath.Join(dir, "Patch"))
 	if len(fileList) < 1 {
-		log.Error("Couldn't find anything to translate")
-		os.Exit(1)
+		log.Fatal("Couldn't find anything to translate")
 	}
 
 	count := len(fileList)
