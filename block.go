@@ -25,7 +25,7 @@ func parseBlock(block patchBlock) patchBlock {
 
 	parsed := false
 
-	for _, t := range block.translations {
+	for i, t := range block.translations {
 		if shouldTranslate(t) {
 			if !parsed {
 				items, err = parseText(block.original)
@@ -42,6 +42,8 @@ func parseBlock(block patchBlock) patchBlock {
 			t.text = translateItems(items)
 			t.translated = true
 			t.touched = true
+
+			block.translations[i] = t
 
 			log.Debugf("'%s' => '%s'\n", block.original, t.text)
 		}
