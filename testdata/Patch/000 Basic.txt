@@ -1,0 +1,24 @@
+> RPGMAKER TRANS PATCH FILE VERSION 3.2
+> BEGIN STRING
+Nein
+> CONTEXT: Commonevents/10/26/Choice/1
+> CONTEXT: Map040/7/40/Choice/1
+> CONTEXT: Map040/16/18/Choice/1
+No
+> END STRING
+
+> BEGIN STRING
+Ja
+> CONTEXT: Commonevents/10/26/Choice/0
+Yeah
+> CONTEXT: Map040/7/40/Choice/0
+> CONTEXT: Map040/16/18/Choice/0
+Yes
+> END STRING
+
+> BEGIN STRING
+Kuhl :\>
+> CONTEXT: Commonevents/10/26/Dialogue/9
+Cool :\)
+> END STRING
+

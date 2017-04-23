@@ -35,7 +35,10 @@ func main() {
 		fmt.Printf("Processing %q (%d/%d)\n", filepath.Base(file), i+1, count)
 
 		patch, err := parsePatchFile(file)
-		check(err)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
 
 		patch, err = translatePatch(patch)
 		check(err)

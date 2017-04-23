@@ -10,6 +10,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/dimchansky/utfbom"
 	"gopkg.in/vbauerster/mpb.v2"
 )
 
@@ -41,34 +42,37 @@ func writePatchFile(patch patchFile) error {
 		_, err = w.WriteString(block.original)
 		check(err)
 
-		for _, context := range block.contexts {
-			context = fmt.Sprintf("> CONTEXT: %s", context)
+		for _, t := range block.translations {
+			for _, context := range t.contexts {
+				context = fmt.Sprintf("> CONTEXT: %s", context)
 
-			if !block.translated {
-				context += " < UNTRANSLATED\n"
-			} else {
-				context += "\n"
+				if !t.translated {
+					context += " < UNTRANSLATED\n"
+				} else {
+					context += "\n"
+				}
+				_, err = w.WriteString(context)
+				check(err)
 			}
-			_, err = w.WriteString(context)
-			check(err)
-		}
 
-		var trans string
+			var trans string
 
-		if block.translated {
-			if block.touched && shouldBreakLines(block.contexts) {
-				trans = breakLines(block.translation)
-				if !strings.HasSuffix(trans, "\n") {
-					trans += "\n"
+			if t.translated {
+				if t.touched && shouldBreakLines(t.contexts) {
+					trans = breakLines(t.text)
+					if !strings.HasSuffix(trans, "\n") {
+						trans += "\n"
+					}
+				} else {
+					trans = t.text
 				}
 			} else {
-				trans = block.translation
+				trans = "\n"
 			}
-		} else {
-			trans = "\n"
+
+			_, err = w.WriteString(trans)
+			check(err)
 		}
-		_, err = w.WriteString(trans)
-		check(err)
 
 		_, err = w.WriteString("> END STRING\n\n")
 		check(err)
@@ -85,12 +89,15 @@ func writePatchFile(patch patchFile) error {
 func parsePatchFile(file string) (patchFile, error) {
 	log.Debugf("Parsing %q", filepath.Base(file))
 
-	f, err := os.Open(file)
-	defer f.Close()
-
 	patch := patchFile{path: file}
 
-	s := bufio.NewScanner(f)
+	f, err := os.Open(file)
+	if err != nil {
+		return patch, err
+	}
+	defer f.Close()
+
+	s := bufio.NewScanner(utfbom.SkipOnly(f))
 	s.Split(bufio.ScanLines)
 
 	original := false
@@ -101,6 +108,7 @@ func parsePatchFile(file string) (patchFile, error) {
 	var contexts []string
 
 	var block patchBlock
+	var translations []translationBlock
 
 	for s.Scan() {
 		l := s.Text()
@@ -114,6 +122,30 @@ func parsePatchFile(file string) (patchFile, error) {
 			case strings.HasPrefix(l, "BEGIN STRING"):
 				original = true
 			case strings.HasPrefix(l, "CONTEXT: "):
+				if translation && len(trans) > 0 {
+					var translated bool
+
+					if len(strings.TrimRight(trans, "\n")) < 1 {
+						trans = ""
+						translated = false
+					} else {
+						translated = true
+					}
+
+					translations = append(translations, translationBlock{
+						text:       trans,
+						contexts:   contexts,
+						translated: translated,
+					})
+
+					trans = ""
+					contexts = nil
+					translation = false
+				} else {
+					original = false
+					translation = true
+				}
+
 				if len(l) > len("CONTEXT: ")+1 {
 					start := len("CONTEXT: ")
 					end := strings.Index(l, " < UNTRANSLATED")
@@ -122,32 +154,41 @@ func parsePatchFile(file string) (patchFile, error) {
 					} else {
 						contexts = append(contexts, l[start:end])
 					}
-				} else {
-					log.Warn("Empty context?", l)
 				}
-
-				original = false
-				translation = true
 			case strings.HasPrefix(l, "END STRING"):
 				translation = false
 
-				block.original = orig
-				block.contexts = contexts
+				if len(trans) > 0 {
+					var translated bool
 
-				if len(strings.TrimRight(trans, "\n")) < 1 {
-					block.translation = ""
-				} else {
-					block.translated = true
-					block.translation = trans
+					if len(strings.TrimRight(trans, "\n")) < 1 {
+						trans = ""
+						translated = false
+					} else {
+						translated = true
+					}
+
+					translations = append(translations, translationBlock{
+						text:       trans,
+						contexts:   contexts,
+						translated: translated,
+					})
 				}
 
-				//log.Info(spew.Sdump(block))
+				if len(translations) == 0 {
+					log.Error("No contexts in block")
+				}
+
+				block.original = orig
+				block.translations = translations
 
 				patch.blocks = append(patch.blocks, block)
 
 				orig = ""
 				trans = ""
+
 				contexts = nil
+				translations = nil
 			default:
 				log.Warn("Unknown input:", l)
 			}
@@ -164,6 +205,10 @@ func parsePatchFile(file string) (patchFile, error) {
 		} else if translation {
 			trans += l
 		}
+	}
+
+	if len(patch.version) < 3 {
+		err = fmt.Errorf("No patch version found in %q", file)
 	}
 
 	return patch, err

@@ -8,34 +8,49 @@ import (
 )
 
 type patchBlock struct {
-	original    string
-	contexts    []string
-	translation string
-	translated  bool
-	touched     bool
+	original     string
+	translations []translationBlock
+}
+
+type translationBlock struct {
+	contexts   []string
+	text       string
+	touched    bool
+	translated bool
 }
 
 func parseBlock(block patchBlock) patchBlock {
-	if shouldTranslate(block) {
-		items, err := parseText(block.original)
+	var items []item
+	var err error
 
-		if err != nil {
-			logBlockError(err, block, items)
+	parsed := false
 
-			return block
+	for _, t := range block.translations {
+		if shouldTranslate(t) {
+			if !parsed {
+				items, err = parseText(block.original)
+
+				if err != nil {
+					logBlockError(err, block, items)
+
+					return block
+				}
+
+				parsed = true
+			}
+
+			t.text = translateItems(items)
+			t.translated = true
+			t.touched = true
+
+			log.Debugf("'%s' => '%s'\n", block.original, t.text)
 		}
-
-		block.translation = translateItems(items)
-		block.translated = true
-		block.touched = true
-
-		log.Debugf("'%s' => '%s'\n", block.original, block.translation)
 	}
 
 	return block
 }
 
-func shouldTranslate(block patchBlock) bool {
+func shouldTranslate(block translationBlock) bool {
 	if block.translated {
 		log.Debug("Skipping translated block")
 		return false
