@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 func TestPatchFileParsing(t *testing.T) {
@@ -42,11 +40,7 @@ func TestPatchFileParsing(t *testing.T) {
 		check(err)
 
 		if !bytes.Equal(input, output) {
-			dmp := diffmatchpatch.New()
-			diffs := dmp.DiffMain(string(input), string(output), false)
-
-			t.Errorf("Patch parser couldn't output file equal to input %q\n%s", inputFile, dmp.DiffPrettyText(diffs))
-
+			t.Errorf("Patch parser couldn't output file equal to input %q", inputFile)
 		}
 	}
 }
