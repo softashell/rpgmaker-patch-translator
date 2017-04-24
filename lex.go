@@ -13,6 +13,7 @@ const (
 	/* TODO: Maybe remove [] and () from this and handle them differently
 	since it may break things that shouldn't be translated */
 	slashCharacters = "0123456789[]{}()\\/<>abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY!|$^."
+	rawCharacters   = "\u3000（）・！？。…【】「」『』\n()/\"[]：:"
 )
 
 // next returns the next rune in the input.
@@ -208,7 +209,7 @@ Loop:
 				l.emit(itemRawString)
 			}
 
-		case strings.ContainsRune("\u3000（）・！？。…【】「」『』\n()/\"[]", r) || unicode.IsSymbol(r):
+		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)
 
 			l.next()
