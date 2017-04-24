@@ -217,13 +217,13 @@ func parsePatchFile(file string) (patchFile, error) {
 func translatePatch(patch patchFile) (patchFile, error) {
 	var err error
 
-	/* TODO: Add option to skip unsafe scripts (everything but vocab)
-	if strings.HasSuffix(patch.path, "Scripts.txt") {
-		fmt.Println("Skipped")
+	// TODO: Don't create workers for each file, should make them global
+	count := len(patch.blocks)
+	workerCount := runtime.NumCPU() + 1
 
-		return patch, err
+	if workerCount > count {
+		workerCount = count
 	}
-	*/
 
 	// Only needed to preserve order in patch file
 	type blockWork struct {
@@ -231,11 +231,11 @@ func translatePatch(patch patchFile) (patchFile, error) {
 		block patchBlock
 	}
 
-	jobs := make(chan blockWork, runtime.NumCPU()*2)
-	results := make(chan blockWork, runtime.NumCPU()*2)
+	jobs := make(chan blockWork, workerCount)
+	results := make(chan blockWork, workerCount)
 
 	// Start workers
-	for w := 1; w <= runtime.NumCPU(); w++ {
+	for w := 1; w <= workerCount; w++ {
 		go func(jobs <-chan blockWork, results chan<- blockWork) {
 			for j := range jobs {
 				j.block = parseBlock(j.block)
@@ -248,8 +248,6 @@ func translatePatch(patch patchFile) (patchFile, error) {
 		RefreshRate(500 * time.Millisecond)
 
 	defer p.Stop()
-
-	count := len(patch.blocks)
 
 	bar := p.AddBar(int64(count)).
 		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace).
