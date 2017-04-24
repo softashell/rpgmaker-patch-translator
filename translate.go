@@ -1,11 +1,8 @@
 package main
 
 import (
-	"regexp"
 	"strings"
 	"unicode"
-
-	"golang.org/x/text/width"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/parnurzeal/gorequest"
@@ -54,25 +51,6 @@ func translateString(text string) (string, error) {
 	return out, nil
 }
 
-func shouldTranslateText(text string) bool {
-	text = strings.TrimSpace(text)
-
-	if len(text) < 1 {
-		return false
-	}
-
-	text = width.Narrow.String(text)
-
-	return isJapanese(text)
-}
-
-func isJapanese(text string) bool {
-	regex := regexp.MustCompile(`(\p{Hiragana}|\p{Katakana}|\p{Han})`)
-	matches := regex.FindAllString(text, 1)
-
-	return len(matches) >= 1
-}
-
 func cleanTranslation(text string) string {
 	// Removes any rune that isn't printable or a space
 	isValid := func(r rune) rune {
@@ -84,6 +62,12 @@ func cleanTranslation(text string) string {
 	}
 
 	text = strings.Map(isValid, text)
+
+	// Repeated whitespace
+	text = replaceRegex(text, `\s{2,}`, " ")
+
+	// ー ー ー ー
+	text = replaceRegex(text, `\s+([-―ー](\s+)?){2,}`, "―")
 
 	return text
 }

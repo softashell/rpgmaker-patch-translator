@@ -63,6 +63,14 @@ func TestCleanTranslatedText(t *testing.T) {
 			`a good idea of ​​a magician`,
 			`a good idea of a magician`,
 		},
+		{
+			" ― ―",
+			"―",
+		},
+		{
+			` ー ー ー ー`,
+			`―`,
+		},
 	}
 
 	for _, pair := range tests {

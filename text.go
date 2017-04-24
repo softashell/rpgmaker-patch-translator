@@ -1,7 +1,10 @@
 package main
 
 import (
+	"regexp"
 	"strings"
+
+	"golang.org/x/text/width"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
@@ -137,4 +140,29 @@ func breakLine(text string) string {
 	}
 
 	return out
+}
+
+func shouldTranslateText(text string) bool {
+	text = strings.TrimSpace(text)
+
+	if len(text) < 1 {
+		return false
+	}
+
+	text = width.Narrow.String(text)
+
+	return isJapanese(text)
+}
+
+func isJapanese(text string) bool {
+	regex := regexp.MustCompile(`(\p{Hiragana}|\p{Katakana}|\p{Han})`)
+	matches := regex.FindAllString(text, 1)
+
+	return len(matches) >= 1
+}
+
+func replaceRegex(text string, expr string, repl string) string {
+	regex := regexp.MustCompile(expr)
+
+	return regex.ReplaceAllString(text, repl)
 }
