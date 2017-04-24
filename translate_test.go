@@ -65,11 +65,15 @@ func TestCleanTranslatedText(t *testing.T) {
 		},
 		{
 			" ― ―",
-			"―",
+			" ー",
 		},
 		{
 			` ー ー ー ー`,
-			`―`,
+			` ー`,
+		},
+		{
+			`Wow ー っ っ！`,
+			`Wow ー！`,
 		},
 	}
 

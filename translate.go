@@ -67,7 +67,9 @@ func cleanTranslation(text string) string {
 	text = replaceRegex(text, `\s{2,}`, " ")
 
 	// ー ー ー ー
-	text = replaceRegex(text, `\s+((\s+)?[-―ー]){2,}`, "―")
+	text = replaceRegex(text, `\s+((\s+)?[-―ー]){2,}`, " ー")
+
+	text = replaceRegex(text, `((\s+)?っ)+`, "")
 
 	return text
 }
