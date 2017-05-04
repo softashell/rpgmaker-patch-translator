@@ -173,10 +173,14 @@ func parsePatchFile(file string) (patchFile, error) {
 						contexts:   contexts,
 						translated: translated,
 					})
-				}
-
-				if len(translations) == 0 {
-					log.Error("No contexts in block")
+				} else if len(contexts) > 0 {
+					translations = append(translations, translationBlock{
+						text:       trans,
+						contexts:   contexts,
+						translated: false,
+					})
+				} else if len(translations) == 0 {
+					log.Errorf("No contexts found for block with original text:\n%q", orig)
 				}
 
 				block.original = orig
