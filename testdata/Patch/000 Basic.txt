@@ -19,6 +19,6 @@ Yes
 > BEGIN STRING
 Kuhl :\>
 > CONTEXT: Commonevents/10/26/Dialogue/9
-Cool :\)
+Cool :)
 > END STRING
 
