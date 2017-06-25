@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	// TODO: Add flags
 	args := os.Args
 	if len(args) < 2 {
 		log.Fatal("Program requires patch directory as argument")

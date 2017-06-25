@@ -59,13 +59,13 @@ func TestRawTextExtraction(t *testing.T) {
 			`Marcus「Hey there.……！`,
 		},
 		{
-			`Yorkie「\"Suddenly it is a question, I have been worried since long ago`,
-			`Yorkie「\"Suddenly it is a question, I have been worried since long ago`,
+			`Yorkie「"Suddenly it is a question, I have been worried since long ago`,
+			`Yorkie「"Suddenly it is a question, I have been worried since long ago`,
 		},
 	}
 
 	for _, pair := range tests {
-		r := getOnlyText(pair.input)
+		r := getOnlyText(unescapeText(pair.input))
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
@@ -159,10 +159,14 @@ func TestTranslatableTextExtraction(t *testing.T) {
 			`PT加入en(!s[484] and v[25] <2)`,
 			`PT加入`,
 		},
+		{
+			`#####素材アイテム####`,
+			`素材アイテム`,
+		},
 	}
 
 	for _, pair := range tests {
-		items, err := parseText(pair.input)
+		items, err := parseText(unescapeText(pair.input))
 		if err != nil {
 			log.Errorf("%s\ntext: %q", err, pair.input)
 			log.Error(spew.Sdump(items))

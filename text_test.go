@@ -52,3 +52,45 @@ attack:＋５６ （Slashing）（hit↑）`,
 	}
 
 }
+
+func TestPatchUnescape(t *testing.T) {
+	var tests = []struct {
+		input  string
+		output string
+	}{
+		{
+			`\#\#\#\#\#素材アイテム\#\#\#\#`,
+			`#####素材アイテム####`,
+		},
+		{
+			`[守護]水属性ダメージを\\V[20]%軽減`,
+			`[守護]水属性ダメージを\V[20]%軽減`,
+		},
+	}
+
+	for _, pair := range tests {
+		r := unescapeText(pair.input)
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
+		}
+	}
+}
+
+func TestPatchEscape(t *testing.T) {
+	var tests = []struct {
+		input  string
+		output string
+	}{
+		{
+			`#####素材アイテム####`,
+			`\#\#\#\#\#素材アイテム\#\#\#\#`,
+		},
+	}
+
+	for _, pair := range tests {
+		r := escapeText(pair.input)
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
+		}
+	}
+}

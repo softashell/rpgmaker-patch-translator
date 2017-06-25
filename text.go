@@ -166,3 +166,21 @@ func replaceRegex(text string, expr string, repl string) string {
 
 	return regex.ReplaceAllString(text, repl)
 }
+
+func unescapeText(text string) string {
+	text = strings.Replace(text, `\\`, `\`, -1)
+
+	text = strings.Replace(text, `\>`, `>`, -1)
+	text = strings.Replace(text, `\#`, `#`, -1)
+
+	return text
+}
+
+func escapeText(text string) string {
+	text = strings.Replace(text, `\`, `\\`, -1)
+
+	text = strings.Replace(text, `>`, `\>`, -1)
+	text = strings.Replace(text, `#`, `\#`, -1)
+
+	return text
+}

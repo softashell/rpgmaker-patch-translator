@@ -13,7 +13,7 @@ const (
 	/* TODO: Maybe remove [] and () from this and handle them differently
 	since it may break things that shouldn't be translated */
 	slashCharacters = "0123456789[]{}()\\/<>abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY!|$^."
-	rawCharacters   = "\u3000（）・！？。…【】「」『』\n()/\"[]：:"
+	rawCharacters   = "\u3000（）・！？。…【】「」『』\n()/\"[]：:#"
 )
 
 // next returns the next rune in the input.
@@ -174,40 +174,9 @@ Loop:
 
 			return lexScript
 		case r == '\\':
-			r = l.peek(1)
+			l.emitBefore(itemText)
 
-			if r == '\\' {
-				l.emitBefore(itemText)
-
-				return lexScript
-			}
-
-			// These shouldn't even appear but google has sent me these back in translations
-			if r == 'u' {
-				log.Debug("Found escaped rune")
-
-				l.emitBefore(itemText)
-
-				l.next()
-
-				l.acceptRun("u0123456789")
-
-				l.ignore()
-			}
-
-			if r == 'n' {
-				log.Debug("Found escaped newline")
-
-				l.emitBefore(itemText)
-
-				l.next()
-
-				l.accept("n")
-
-				l.acceptRun("[0123456789]")
-
-				l.emit(itemRawString)
-			}
+			return lexScript
 
 		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)

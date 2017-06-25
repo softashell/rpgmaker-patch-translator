@@ -39,7 +39,7 @@ func writePatchFile(patch patchFile) error {
 		_, err = w.WriteString("> BEGIN STRING\n")
 		check(err)
 
-		_, err = w.WriteString(block.original)
+		_, err = w.WriteString(escapeText(block.original))
 		check(err)
 
 		for _, t := range block.translations {
@@ -58,13 +58,15 @@ func writePatchFile(patch patchFile) error {
 			var trans string
 
 			if t.translated {
+				text := escapeText(t.text)
+
 				if t.touched && shouldBreakLines(t.contexts) {
-					trans = breakLines(t.text)
+					trans = breakLines(text)
 					if !strings.HasSuffix(trans, "\n") {
 						trans += "\n"
 					}
 				} else {
-					trans = t.text
+					trans = text
 				}
 			} else {
 				trans = "\n"
@@ -169,13 +171,13 @@ func parsePatchFile(file string) (patchFile, error) {
 					}
 
 					translations = append(translations, translationBlock{
-						text:       trans,
+						text:       unescapeText(trans),
 						contexts:   contexts,
 						translated: translated,
 					})
 				} else if len(contexts) > 0 {
 					translations = append(translations, translationBlock{
-						text:       trans,
+						text:       unescapeText(trans),
 						contexts:   contexts,
 						translated: false,
 					})
@@ -183,7 +185,7 @@ func parsePatchFile(file string) (patchFile, error) {
 					log.Errorf("No contexts found for block with original text:\n%q", orig)
 				}
 
-				block.original = orig
+				block.original = unescapeText(orig)
 				block.translations = translations
 
 				patch.blocks = append(patch.blocks, block)
