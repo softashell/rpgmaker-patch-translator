@@ -88,10 +88,11 @@ func breakLine(text string) string {
 
 	var lineLength int
 
-	if engine == engineRPGMVX {
+	switch engine {
+	case engineWolf:
+		lineLength = 64
+	default:
 		lineLength = 42
-	} else if engine == engineWolf {
-		lineLength = 62
 	}
 
 	for _, item := range items {
