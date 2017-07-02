@@ -44,7 +44,7 @@ func writePatchFile(patch patchFile) error {
 
 		for _, t := range block.translations {
 			for _, context := range t.contexts {
-				context = fmt.Sprintf("> CONTEXT: %s", context)
+				context = fmt.Sprintf("> CONTEXT%s", context)
 
 				if !t.translated {
 					context += " < UNTRANSLATED\n"
@@ -119,11 +119,11 @@ func parsePatchFile(file string) (patchFile, error) {
 			l = l[2:]
 
 			switch {
-			case strings.HasPrefix(l, "RPGMAKER TRANS PATCH FILE VERSION"):
+			case strings.HasPrefix(l, "RPGMAKER TRANS PATCH FILE VERSION") || strings.HasPrefix(l, "WOLF TRANS PATCH FILE VERSION 1.0"):
 				patch.version = l
 			case strings.HasPrefix(l, "BEGIN STRING"):
 				original = true
-			case strings.HasPrefix(l, "CONTEXT: "):
+			case strings.HasPrefix(l, "CONTEXT"):
 				if translation && len(trans) > 0 {
 					var translated bool
 
@@ -148,8 +148,8 @@ func parsePatchFile(file string) (patchFile, error) {
 					translation = true
 				}
 
-				if len(l) > len("CONTEXT: ")+1 {
-					start := len("CONTEXT: ")
+				if len(l) > len("CONTEXT")+1 {
+					start := len("CONTEXT")
 					end := strings.Index(l, " < UNTRANSLATED")
 					if end == -1 {
 						contexts = append(contexts, l[start:])

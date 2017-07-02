@@ -173,7 +173,7 @@ Loop:
 			l.emitBefore(itemText)
 
 			return lexScript
-		case r == '\\':
+		case r == '\\' || r == '@':
 			l.emitBefore(itemText)
 
 			return lexScript
@@ -231,6 +231,10 @@ Loop:
 			break Loop
 		case '\n':
 			l.acceptRun("[0123456789]")
+
+			break Loop
+		case '@':
+			l.acceptRun("0123456789")
 
 			break Loop
 

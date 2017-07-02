@@ -59,18 +59,24 @@ func shouldTranslate(block translationBlock) bool {
 	}
 
 	for _, c := range block.contexts {
-		//log.Debugf("%q", c)
-		if strings.HasSuffix(c, "_se/name/") ||
-			strings.HasSuffix(c, "/bgm/name/") ||
-			strings.HasSuffix(c, "_me/name/") ||
-			strings.Contains(c, "/InlineScript/") {
-			return false
-		}
+		if engine == engineRPGMVX {
+			//log.Debugf("%q", c)
+			if strings.HasSuffix(c, "_se/name/") ||
+				strings.HasSuffix(c, "/bgm/name/") ||
+				strings.HasSuffix(c, "_me/name/") ||
+				strings.Contains(c, "/InlineScript/") {
+				return false
+			}
 
-		if strings.HasPrefix(c, "Scripts/") {
-			if strings.Contains(c, "Vocab/") {
-				break
-			} else {
+			if strings.HasPrefix(c, "Scripts/") {
+				if strings.Contains(c, "Vocab/") {
+					break
+				} else {
+					return false
+				}
+			}
+		} else if engine == engineWolf {
+			if strings.HasSuffix(c, "/Database") {
 				return false
 			}
 		}

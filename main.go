@@ -1,14 +1,24 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
+
+type engineType int
+
+const (
+	engineNone engineType = iota
+	engineRPGMVX
+	engineWolf
+)
+
+var engine = engineNone
 
 func main() {
 	// TODO: Add flags
@@ -52,20 +62,46 @@ func main() {
 }
 
 func checkPatchVersion(dir string) error {
-	contents, err := ioutil.ReadFile(filepath.Join(dir, "RPGMKTRANSPATCH"))
+	file, err := os.Open(filepath.Join(dir, "RPGMKTRANSPATCH"))
 	if err != nil {
-		return err
+		file, err = os.Open(filepath.Join(dir, "Patch", "dump", "GameDat.txt"))
+		if err != nil {
+			return fmt.Errorf("Unable to open RPGMKTRANSPATCH or Patch/dump/GameDat.txt")
+		}
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		text := scanner.Text()
+
+		if text == "> RPGMAKER TRANS PATCH V3" {
+			fmt.Println("Detected RPG Maker VX Ace Patch")
+
+			engine = engineRPGMVX
+
+			return nil
+		} else if text == "> WOLF TRANS PATCH FILE VERSION 1.0" {
+			fmt.Println("Detected WOLF RPG Patch")
+
+			engine = engineWolf
+
+			return nil
+		}
+
+		return fmt.Errorf("Unsupported patch version")
 	}
 
-	if string(contents) != "> RPGMAKER TRANS PATCH V3" {
-		err = fmt.Errorf("Unsupported patch version")
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
 	}
 
 	return err
 }
 
 func getDirectoryContents(dir string) []string {
-	fileList := []string{}
+	var fileList []string
+
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if f.IsDir() || filepath.Ext(path) != ".txt" {
 			return nil
@@ -77,7 +113,7 @@ func getDirectoryContents(dir string) []string {
 	})
 
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	return fileList

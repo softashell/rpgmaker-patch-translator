@@ -33,8 +33,14 @@ func getOnlyText(text string) string {
 
 func shouldBreakLines(contexts []string) bool {
 	for _, c := range contexts {
-		if strings.Contains(c, "GameINI/Title") || strings.Contains(c, "System/game_title/") {
-			return false
+		if engine == engineRPGMVX {
+			if strings.Contains(c, "GameINI/Title") || strings.Contains(c, "System/game_title/") {
+				return false
+			}
+		} else if engine == engineWolf {
+			if strings.HasSuffix(c, "Title") {
+				return false
+			}
 		}
 	}
 
@@ -80,10 +86,18 @@ func breakLine(text string) string {
 	var justText string
 	var line string
 
+	var lineLength int
+
+	if engine == engineRPGMVX {
+		lineLength = 42
+	} else if engine == engineWolf {
+		lineLength = 62
+	}
+
 	for _, item := range items {
 		switch item.typ {
 		case itemText, itemRawString:
-			if len([]rune(justText+item.val)) <= 42 {
+			if len([]rune(justText+item.val)) <= lineLength {
 				out += line
 				out += item.val
 
@@ -99,7 +113,7 @@ func breakLine(text string) string {
 			for i := range words {
 				log.Debug("word: ", i+1, " / ", len(words), " len:", len([]rune(justText+words[i])))
 
-				if len([]rune(justText+words[i])) <= 42 {
+				if len([]rune(justText+words[i])) <= lineLength {
 					log.Debugf("adding %q", words[i])
 
 					line += words[i]
