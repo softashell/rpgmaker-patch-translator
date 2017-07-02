@@ -68,7 +68,7 @@ func shouldTranslate(block translationBlock) bool {
 				return false
 			}
 
-			if strings.HasPrefix(c, "Scripts/") {
+			if strings.HasPrefix(c, ": Scripts/") {
 				if strings.Contains(c, "Vocab/") {
 					break
 				} else {
