@@ -10,6 +10,19 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+var ignoredExtensions = []string{
+	".png",
+	".jpg",
+	".jpeg",
+	".gif",
+	".bmp",
+	".ogg",
+	".mp3",
+	".wav",
+	".mid",
+	".midi",
+}
+
 func getOnlyText(text string) string {
 	items, err := parseText(text)
 	if err != nil {
@@ -165,6 +178,13 @@ func shouldTranslateText(text string) bool {
 	}
 
 	text = width.Narrow.String(text)
+	text = strings.ToLower(text)
+
+	for _, e := range ignoredExtensions {
+		if strings.Contains(text, e) {
+			return false
+		}
+	}
 
 	return isJapanese(text)
 }
