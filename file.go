@@ -251,7 +251,7 @@ func translatePatch(patch patchFile) (patchFile, error) {
 	}
 
 	p := mpb.New().
-		RefreshRate(500 * time.Millisecond)
+		RefreshRate(100 * time.Millisecond)
 
 	defer p.Stop()
 
