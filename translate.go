@@ -46,6 +46,12 @@ func translateString(text string) (string, error) {
 	}
 
 	out := response.TranslationText
+
+	if len(out) < 1 {
+		log.Warnf("Translator returned empty string, replacing with original text %q", text)
+		out = text
+	}
+
 	out = cleanTranslation(out)
 
 	return out, nil
