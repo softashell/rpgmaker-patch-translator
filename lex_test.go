@@ -175,6 +175,10 @@ func TestTranslatableTextExtraction(t *testing.T) {
 			`@3「あらら、今は入れないのかぁ。仕方ないな……また改めて来よう」`,
 			`あらら、今は入れないのかぁ仕方ないなまた改めて来よう`,
 		},
+		{
+			`@-1「あらら」@15`,
+			`あらら`,
+		},
 	}
 
 	for _, pair := range tests {

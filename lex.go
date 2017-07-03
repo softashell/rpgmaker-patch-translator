@@ -234,7 +234,7 @@ Loop:
 
 			break Loop
 		case '@':
-			l.acceptRun("0123456789")
+			l.acceptRun("0123456789-")
 
 			break Loop
 
