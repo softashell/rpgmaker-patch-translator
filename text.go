@@ -103,7 +103,7 @@ func breakLine(text string) string {
 
 	switch engine {
 	case engineWolf:
-		lineLength = 64
+		lineLength = 54
 	default:
 		lineLength = 42
 	}
