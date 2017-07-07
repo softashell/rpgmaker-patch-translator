@@ -97,9 +97,7 @@ func breakLine(text string) string {
 
 	log.Debug(spew.Sdump(items))
 
-	var out string
-	var justText string
-	var line string
+	var out, justText, line string
 
 	var lineLength int
 
@@ -146,20 +144,22 @@ func breakLine(text string) string {
 				if i+1 == len(words) && len([]rune(justText+words[i])) <= lineLength+5 {
 					log.Debugf("Word %q was too long to fit! Not adding a new line before because it's short and last item", words[i])
 					line += words[i]
-				} else {
-					log.Debugf("Word %q was too long to fit! Added a new line before it", words[i])
-					line = strings.TrimRight(line, " ")
-					line += "\n"
 
-					out += line
+					break
+				}
 
-					line = words[i]
-					justText = words[i]
+				log.Debugf("Word %q was too long to fit! Added a new line before it", words[i])
+				line = strings.TrimRight(line, " ")
+				line += "\n"
 
-					if i+1 < len(words) {
-						line += " "
-						justText += " "
-					}
+				out += line
+
+				line = words[i]
+				justText = words[i]
+
+				if i+1 < len(words) {
+					line += " "
+					justText += " "
 				}
 			}
 		default:
