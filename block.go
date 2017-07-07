@@ -26,7 +26,7 @@ func parseBlock(block patchBlock) patchBlock {
 	parsed := false
 
 	for i, t := range block.translations {
-		if shouldTranslateContext(t) && shouldTranslateText(block.original) {
+		if shouldTranslateContext(t, block.original) && shouldTranslateText(block.original) {
 			if !parsed {
 				items, err = parseText(block.original)
 
@@ -52,7 +52,7 @@ func parseBlock(block patchBlock) patchBlock {
 	return block
 }
 
-func shouldTranslateContext(block translationBlock) bool {
+func shouldTranslateContext(block translationBlock, text string) bool {
 	if block.translated {
 		log.Debug("Skipping translated block")
 		return false
@@ -98,6 +98,10 @@ func shouldTranslateContext(block translationBlock) bool {
 				}
 
 				return false
+			} else if strings.HasPrefix(c, " COMMONEVENT:") {
+				if (strings.HasSuffix(c, "/SetString") && strings.Contains(text, "/")) || strings.HasSuffix(c, "/StringCondition") {
+					return false
+				}
 			}
 		}
 	}
