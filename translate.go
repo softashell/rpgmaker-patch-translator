@@ -70,6 +70,8 @@ func cleanTranslation(text string) string {
 	text = strings.Map(isValid, text)
 
 	text = strings.Replace(text, "\\u0026", "＆", -1)
+	text = strings.Replace(text, "\\u003c", "<", -1)
+	text = strings.Replace(text, "\\u003e", ">", -1)
 
 	if strings.Contains(text, "\\u0") {
 		log.Warnf("Found unexpected escaped character in translation %s", text)
