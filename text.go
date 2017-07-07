@@ -143,23 +143,27 @@ func breakLine(text string) string {
 					continue
 				}
 
-				log.Debugf("Word %q was too long to fit! Added a new line before it", words[i])
+				if i+1 == len(words) && len([]rune(justText+words[i])) <= lineLength+5 {
+					log.Debugf("Word %q was too long to fit! Not adding a new line before because it's short and last item", words[i])
+					line += words[i]
+				} else {
+					log.Debugf("Word %q was too long to fit! Added a new line before it", words[i])
+					line = strings.TrimRight(line, " ")
+					line += "\n"
 
-				line = strings.TrimRight(line, " ")
-				line += "\n"
+					out += line
 
-				out += line
+					line = words[i]
+					justText = words[i]
 
-				line = words[i]
-				justText = words[i]
-
-				if i+1 < len(words) {
-					line += " "
-					justText += " "
+					if i+1 < len(words) {
+						line += " "
+						justText += " "
+					}
 				}
 			}
 		default:
-			out += item.val
+			line += item.val
 		}
 	}
 

@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestLineBreaking(t *testing.T) {
 	var tests = []struct {
@@ -9,9 +11,9 @@ func TestLineBreaking(t *testing.T) {
 	}{
 		{
 			`\\name[Domestic scent]（…Properly……I want to take a bath……
-　today…Let's go home.……）`,
+today…Let's go home.……）`,
 			`\\name[Domestic scent]（…Properly……I want to take a bath……
-　today…Let's go home.……）`,
+today…Let's go home.……）`,
 		},
 		{
 			`"Money %s\\\\G I got！"`,
@@ -29,11 +31,11 @@ Thunder）（Stan）`,
 		{
 			`【dagger】It is rusty and its sharpness
 【dagger】It is rusty and its sharpness is dull but it will not get stuck。
- attack:＋４ （Slashing）（Speed↑）`,
+attack:＋４ （Slashing）（Speed↑）`,
 			`【dagger】It is rusty and its sharpness
 【dagger】It is rusty and its sharpness is
 dull but it will not get stuck。
- attack:＋４ （Slashing）（Speed↑）`,
+attack:＋４ （Slashing）（Speed↑）`,
 		},
 		{
 			`【sword】If you equip it, you will get an assault lance song Lv 7。
@@ -41,6 +43,25 @@ attack:＋５６ （Slashing）（hit↑）`,
 			`【sword】If you equip it, you will get an
 assault lance song Lv 7。
 attack:＋５６ （Slashing）（hit↑）`,
+		},
+		{
+			`<The contents will be updated even if you see the event by recollection>`,
+			`<The contents will be updated even if you
+see the event by recollection>`,
+		},
+		{
+			`After viewing the event the content is updated,
+Reset by sleeping in bed。
+<The contents will be updated even if you see the event by recollection\>`,
+			`After viewing the event the content is updated,
+Reset by sleeping in bed。
+<The contents will be updated even if you
+see the event by recollection\>`,
+		},
+		{
+			`During 5 turns, the user is given flames・ice・Give the attribute of lightning`,
+			`During 5 turns, the user is given flames・ice・
+Give the attribute of lightning`,
 		},
 	}
 
