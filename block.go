@@ -78,6 +78,26 @@ func shouldTranslateContext(block translationBlock) bool {
 		} else if engine == engineWolf {
 			if strings.HasSuffix(c, "/Database") {
 				return false
+			} else if strings.HasPrefix(c, " DB:DataBase") {
+				if strings.Contains(c, "アクター/") || //Actor
+					strings.Contains(c, "NPC/") ||
+					strings.Contains(c, "ステート/") || // State
+					strings.Contains(c, "技能/") || // Skill
+					strings.Contains(c, "敵/") || // Enemy
+					strings.Contains(c, "武器/") || // Weapon
+					strings.Contains(c, "称号/") || // Title
+					strings.Contains(c, "衣装/") || // Clothing
+					strings.Contains(c, "防具/") || // Armor
+					strings.Contains(c, "道具/") || // Tools
+					strings.Contains(c, "メニュー設計/") || // Menu
+					strings.Contains(c, "コンフィグ/") || // Config
+					strings.Contains(c, "クエスト/") || // Quest
+					strings.Contains(c, "マップ選択画面") || // Map selection
+					strings.Contains(c, "回想モード/") { // Recollection
+					break
+				}
+
+				return false
 			}
 		}
 	}
