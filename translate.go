@@ -75,6 +75,8 @@ func cleanTranslation(text string) string {
 		log.Warnf("Found unexpected escaped character in translation %s", text)
 	}
 
+	text = strings.Replace(text, "\\", "", -1)
+
 	// Repeated whitespace
 	text = replaceRegex(text, `\s{2,}`, " ")
 
