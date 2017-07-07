@@ -22,6 +22,7 @@ var ignoredExtensions = []string{
 	".mid",
 	".midi",
 	".txt",
+	".csv",
 }
 
 func getOnlyText(text string) string {
