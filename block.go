@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type patchBlock struct {
@@ -20,17 +21,24 @@ type translationBlock struct {
 }
 
 func parseBlock(block patchBlock) patchBlock {
-	var items []item
-	var err error
-
-	parsed := false
-
 	if !shouldTranslateText(block.original) {
 		return block
 	}
 
+	var err error
+	var items []item
+	var untranslated []string
+	var translated, parsed bool
+
 	for i, t := range block.translations {
-		if shouldTranslateContext(t, block.original) {
+		if t.translated {
+			continue // Block is already translated
+		}
+
+		good, bad := getTranslatableContexts(t, block.original)
+		untranslated = append(untranslated, bad...)
+
+		if len(good) > 0 {
 			if !parsed {
 				items, err = parseText(block.original)
 
@@ -46,71 +54,27 @@ func parseBlock(block patchBlock) patchBlock {
 			t.text = translateItems(items)
 			t.translated = true
 			t.touched = true
+			t.contexts = good
 
 			block.translations[i] = t
 
 			log.Debugf("'%s' => '%s'\n", block.original, t.text)
+
+			translated = true
 		}
+	}
+
+	if translated && len(untranslated) > 0 {
+		block.translations = append(block.translations, translationBlock{
+			text:       "",
+			contexts:   untranslated,
+			translated: false,
+		})
+
+		log.Warnf("Mixed block\n %s", spew.Sdump(block))
 	}
 
 	return block
-}
-
-func shouldTranslateContext(block translationBlock, text string) bool {
-	if block.translated {
-		log.Debug("Skipping translated block")
-		return false
-	}
-
-	for _, c := range block.contexts {
-		if engine == engineRPGMVX {
-			//log.Debugf("%q", c)
-			if strings.HasSuffix(c, "_se/name/") ||
-				strings.HasSuffix(c, "/bgm/name/") ||
-				strings.HasSuffix(c, "_me/name/") ||
-				strings.Contains(c, "/InlineScript/") {
-				return false
-			}
-
-			if strings.HasPrefix(c, ": Scripts/") {
-				if strings.Contains(c, "Vocab/") {
-					break
-				} else {
-					return false
-				}
-			}
-		} else if engine == engineWolf {
-			if strings.HasSuffix(c, "/Database") {
-				return false
-			} else if strings.HasPrefix(c, " DB:DataBase") {
-				if strings.Contains(c, "アクター/") || //Actor
-					strings.Contains(c, "NPC/") ||
-					strings.Contains(c, "ステート/") || // State
-					strings.Contains(c, "技能/") || // Skill
-					strings.Contains(c, "敵/") || // Enemy
-					strings.Contains(c, "武器/") || // Weapon
-					strings.Contains(c, "称号/") || // Title
-					strings.Contains(c, "衣装/") || // Clothing
-					strings.Contains(c, "防具/") || // Armor
-					strings.Contains(c, "道具/") || // Tools
-					strings.Contains(c, "メニュー設計/") || // Menu
-					strings.Contains(c, "コンフィグ/") || // Config
-					strings.Contains(c, "クエスト/") || // Quest
-					strings.Contains(c, "マップ選択画面") || // Map selection
-					strings.Contains(c, "回想モード/") { // Recollection
-					break
-				}
-
-				return false
-			} else if strings.HasPrefix(c, " COMMONEVENT:") {
-				if (strings.HasSuffix(c, "/SetString") && strings.Contains(text, "/")) || strings.HasSuffix(c, "/StringCondition") {
-					return false
-				}
-			}
-		}
-	}
-
-	return true
 }
 
 func translateItems(items []item) string {
@@ -134,7 +98,7 @@ func translateItems(items []item) string {
 				out += " "
 			}
 		} else if item.typ == itemEOF {
-			continue
+			break
 		} else if item.typ != itemError {
 			// Add space before '(' since translation might make it get parsed as function
 			if item.typ == itemRawString && item.val == "(" &&
