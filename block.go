@@ -71,7 +71,7 @@ func parseBlock(block patchBlock) patchBlock {
 			translated: false,
 		})
 
-		log.Warnf("Mixed block\n %s", spew.Sdump(block))
+		log.Infof("Mixed block\n %s", spew.Sdump(block))
 	}
 
 	return block
