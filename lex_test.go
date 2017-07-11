@@ -203,6 +203,10 @@ func TestTranslatableTextExtraction(t *testing.T) {
 			`"OK:LNX11b_リフォーム・バトルステータス"`,
 			`リフォームバトルステータス`,
 		},
+		{
+			`\\1	こんにちわ、シスター。`,
+			`こんにちわ、シスター`,
+		},
 	}
 
 	for _, pair := range tests {

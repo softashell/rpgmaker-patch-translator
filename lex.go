@@ -10,10 +10,8 @@ import (
 )
 
 const (
-	/* TODO: Maybe remove [] and () from this and handle them differently
-	since it may break things that shouldn't be translated */
 	slashCharacters = "0123456789[]{}()\\/<>abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY!|$^."
-	rawCharacters   = "\u3000（）・！？。…【】「」『』\n()/\"[]<>〈〉：:#*＊_"
+	rawCharacters   = "\u3000\t（）・！？。…【】「」『』\n()/\"[]<>〈〉：:#*＊_"
 )
 
 // next returns the next rune in the input.
