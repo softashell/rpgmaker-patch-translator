@@ -65,13 +65,15 @@ Give the attribute of lightning`,
 		},
 	}
 
+	lineLength = 42
+	lineTolerance = 5
+
 	for _, pair := range tests {
 		r := breakLines(pair.input)
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
 	}
-
 }
 
 func TestShouldTranslateText(t *testing.T) {

@@ -86,15 +86,6 @@ func breakLine(text string) string {
 
 	var out, justText, line string
 
-	var lineLength int
-
-	switch engine {
-	case engineWolf:
-		lineLength = 54
-	default:
-		lineLength = 42
-	}
-
 	for _, item := range items {
 		switch item.typ {
 		case itemText, itemRawString:
@@ -128,7 +119,7 @@ func breakLine(text string) string {
 					continue
 				}
 
-				if i+1 == len(words) && len([]rune(justText+words[i])) <= lineLength+5 {
+				if i+1 == len(words) && len([]rune(justText+words[i])) <= lineLength+lineTolerance {
 					log.Debugf("Word %q was too long to fit! Not adding a new line before because it's short and last item", words[i])
 					line += words[i]
 

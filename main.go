@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,17 +19,22 @@ const (
 	engineWolf
 )
 
-var engine = engineNone
+var (
+	engine = engineNone
+
+	lineLength    int
+	lineTolerance int
+)
 
 func main() {
-	// TODO: Add flags
-	args := os.Args
-	if len(args) < 2 {
+	start := time.Now()
+
+	args := parseFlags()
+	if len(args) < 1 {
 		log.Fatal("Program requires patch directory as argument")
 	}
 
-	dir := os.Args[1]
-
+	dir := args[0]
 	err := checkPatchVersion(dir)
 	if err != nil {
 		log.Fatal(err)
@@ -39,9 +45,19 @@ func main() {
 		log.Fatal("Couldn't find anything to translate")
 	}
 
-	count := len(fileList)
-	start := time.Now()
+	if lineLength < 1 {
+		switch engine {
+		case engineWolf:
+			lineLength = 54
+		default:
+			lineLength = 42
+		}
+	}
+	fmt.Println("Current settings:")
+	fmt.Println("- line length:", lineLength)
+	fmt.Println("- line length tolerance:", lineTolerance)
 
+	count := len(fileList)
 	for i, file := range fileList {
 		fmt.Printf("Processing %q (%d/%d)\n", filepath.Base(file), i+1, count)
 
@@ -123,4 +139,13 @@ func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func parseFlags() []string {
+	flag.IntVar(&lineLength, "length", 42, "Max line legth")
+	flag.IntVar(&lineTolerance, "tolerance", 5, "Max amount of characters allowed to go over the line limit")
+
+	flag.Parse()
+
+	return flag.Args()
 }
