@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	slashCharacters = "0123456789[]{}()\\/<>abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY!|$^."
-	rawCharacters   = "\u3000\t（）・！？。…【】「」『』\n()/\"[]<>〈〉：:#*＊_"
+	slashCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY0123456789[]{}()\\/<>!|$^."
+	rawCharacters   = "\u3000\t\n・！？。…「」『』()（）/\"“”[]【】<>〈〉：:*＊_＿#$%="
+	// Skipping these might not actually be such a good idea since in some cases translator will lack context
+	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY0123456789.,!?" // + " "
 )
 
 // next returns the next rune in the input.
@@ -109,10 +111,7 @@ func (l *lexer) accept(valid string) bool {
 
 // acceptRun consumes a run of runes from the valid set.
 func (l *lexer) acceptRun(valid string) {
-	count := 0
-
 	for strings.ContainsRune(valid, l.next()) {
-		count++
 	}
 
 	l.backup(1)
@@ -175,16 +174,30 @@ Loop:
 			l.emitBefore(itemText)
 
 			return lexScript
-
-		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
+		case r == '#' && l.peek(1) == '{':
 			l.emitBefore(itemText)
 
+			return lexRubyBlock
+		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
+			l.emitBefore(itemText)
 			l.next()
+			l.emit(itemRawString)
+
+			return lexText
+		case strings.ContainsRune(ignoredCharacters, r):
+			l.emitBefore(itemText)
+
+			if !strings.Contains(l.input[l.pos:], "if(") && !strings.Contains(l.input[l.pos:], "en(") {
+				l.acceptRun(ignoredCharacters + " ")
+			} else {
+				l.acceptRun(ignoredCharacters)
+			}
 
 			l.emit(itemRawString)
 
 			return lexText
 		}
+
 	}
 
 	if l.pos > l.start {
@@ -320,4 +333,37 @@ func lexInsideAction(l *lexer) stateFn {
 	}
 
 	return lexInsideAction
+}
+
+func lexRubyBlock(l *lexer) stateFn {
+	log.Debugf("lexRubyBlock %q", l.input[l.pos:])
+
+	opened := 0
+
+Loop:
+	for {
+		switch l.next() {
+		case eof:
+			log.Warn("Ruby block not terminated properly %q", l.input[l.start:])
+			break Loop
+		case '#':
+			log.Debug("Starting ruby block")
+		case '{':
+			log.Debug("Opening brackets")
+			opened++
+		case '}':
+			log.Debug("Closing brackets")
+			opened--
+			if opened <= 0 {
+				log.Debug("Ending ruby block")
+				break Loop
+			}
+		default:
+			log.Debug(string(l.mark))
+		}
+	}
+
+	l.emit(itemRubyBlock)
+
+	return lexText
 }

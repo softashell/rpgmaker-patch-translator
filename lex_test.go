@@ -62,6 +62,14 @@ func TestRawTextExtraction(t *testing.T) {
 			`Yorkie「"Suddenly it is a question, I have been worried since long ago`,
 			`Yorkie「"Suddenly it is a question, I have been worried since long ago`,
 		},
+		{
+			`"0x#{text}"`,
+			`"0x"`,
+		},
+		{
+			`/<\#{GRPLUS::M_WORD}[：:](\\S+)\>/`,
+			`/<[：:](+)>/`,
+		},
 	}
 
 	for _, pair := range tests {
@@ -113,7 +121,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`\\\>…「\\C[10]バッポウ\\C[0]」再出現カウント： \\C[3] \\V[491] \\C[0]\\\>\\\>　\\C[14]※出現場所：キータニ平原\\\>　\\C[14]※カウントが 0 になると再挑戦可能になります。`,
-			`バッポウ再出現カウント※出現場所キータニ平原※カウントが 0 になると再挑戦可能になります`,
+			`バッポウ再出現カウント※出現場所キータニ平原※カウントが になると再挑戦可能になります`,
 		},
 		{
 			`【\\C[14]骨董屋\\C[0]】　「謎の防具」か。　ほぅ、複数持っているようだな。　一気に鑑定するかい？\\C[3] \\V[982] G\\C[0] 頂くけどな。\\$`,
@@ -141,7 +149,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`疾風苦無(消費1)　en(v[25] \>= 1)`,
-			`疾風苦無消費1`,
+			`疾風苦無消費`,
 		},
 		{
 			`\\\\B\\\\I\\\\C[4]レジネッタ：\\\\C[0]\\\\/I\\\\/B\nあ……ふぁっ……！\n`,
@@ -157,7 +165,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`PT加入en(!s[484] and v[25] <2)`,
-			`PT加入`,
+			`加入`,
 		},
 		{
 			`#####素材アイテム####`,
@@ -206,6 +214,10 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		{
 			`\\1	こんにちわ、シスター。`,
 			`こんにちわ、シスター`,
+		},
+		{
+			`"0x\#{text}"`,
+			``,
 		},
 	}
 
