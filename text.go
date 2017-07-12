@@ -10,20 +10,23 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var ignoredExtensions = []string{
-	".png",
-	".jpg",
-	".jpeg",
-	".gif",
-	".bmp",
-	".ogg",
-	".mp3",
-	".wav",
-	".mid",
-	".midi",
-	".txt",
-	".csv",
-}
+var (
+	moonRegex         = regexp.MustCompile(`(\p{Hiragana}|\p{Katakana}|\p{Han})`)
+	ignoredExtensions = []string{
+		".png",
+		".jpg",
+		".jpeg",
+		".gif",
+		".bmp",
+		".ogg",
+		".mp3",
+		".wav",
+		".mid",
+		".midi",
+		".txt",
+		".csv",
+	}
+)
 
 func getOnlyText(text string) string {
 	items, err := parseText(text)
@@ -44,22 +47,6 @@ func getOnlyText(text string) string {
 	}
 
 	return out
-}
-
-func shouldBreakLines(contexts []string) bool {
-	for _, c := range contexts {
-		if engine == engineRPGMVX {
-			if strings.Contains(c, "GameINI/Title") || strings.Contains(c, "System/game_title/") {
-				return false
-			}
-		} else if engine == engineWolf {
-			if strings.HasSuffix(c, "Title") {
-				return false
-			}
-		}
-	}
-
-	return true
 }
 
 func breakLines(text string) string {
@@ -183,6 +170,11 @@ func shouldTranslateText(text string) bool {
 		return false
 	}
 
+	//Regex
+	if strings.HasPrefix(text, "/") && strings.HasSuffix(text, "/") {
+		return false
+	}
+
 	text = width.Narrow.String(text)
 	text = strings.ToLower(text)
 
@@ -196,8 +188,7 @@ func shouldTranslateText(text string) bool {
 }
 
 func isJapanese(text string) bool {
-	regex := regexp.MustCompile(`(\p{Hiragana}|\p{Katakana}|\p{Han})`)
-	matches := regex.FindAllString(text, 1)
+	matches := moonRegex.FindAllString(text, 1)
 
 	return len(matches) >= 1
 }
