@@ -65,6 +65,24 @@ func shouldTranslateContext(c, text string) bool {
 			if (strings.HasSuffix(c, "/SetString") && strings.Contains(text, "/")) || strings.HasSuffix(c, "/StringCondition") {
 				return false
 			}
+		} else if strings.HasPrefix(c, " GAMEDAT:") && !strings.HasSuffix(c, "Title") {
+			return false
+		}
+	}
+
+	return true
+}
+
+func shouldBreakLines(contexts []string) bool {
+	for _, c := range contexts {
+		if engine == engineRPGMVX {
+			if strings.Contains(c, "GameINI/Title") || strings.Contains(c, "System/game_title/") {
+				return false
+			}
+		} else if engine == engineWolf {
+			if strings.HasPrefix(c, " GAMEDAT:") {
+				return false
+			}
 		}
 	}
 
