@@ -22,6 +22,7 @@ const (
 var (
 	engine = engineNone
 
+	// Flags
 	lineLength    int
 	lineTolerance int
 )
@@ -45,14 +46,14 @@ func main() {
 		log.Fatal("Couldn't find anything to translate")
 	}
 
-	if lineLength < 1 {
-		switch engine {
-		case engineWolf:
+	if lineLength == -1 {
+		if engine == engineWolf {
 			lineLength = 54
-		default:
+		} else {
 			lineLength = 42
 		}
 	}
+
 	fmt.Println("Current settings:")
 	fmt.Println("- line length:", lineLength)
 	fmt.Println("- line length tolerance:", lineTolerance)
@@ -142,7 +143,7 @@ func check(err error) {
 }
 
 func parseFlags() []string {
-	flag.IntVar(&lineLength, "length", 42, "Max line legth")
+	flag.IntVar(&lineLength, "length", -1, "Max line legth")
 	flag.IntVar(&lineTolerance, "tolerance", 5, "Max amount of characters allowed to go over the line limit")
 
 	flag.Parse()
