@@ -208,6 +208,14 @@ func escapeText(text string) string {
 	return text
 }
 
+func startsWithWhitespace(text string) bool {
+	if strings.HasPrefix(text, " ") || strings.HasPrefix(text, "　") {
+		return true
+	}
+
+	return false
+}
+
 func endsWithWhitespace(text string) bool {
 	if strings.HasSuffix(text, " ") || strings.HasSuffix(text, "　") {
 		return true

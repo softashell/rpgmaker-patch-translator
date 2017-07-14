@@ -65,7 +65,7 @@ func assembleItems(items []item) string {
 			// Space after raw strings that may contain english and any scripts
 			if (lastType == itemRawString && strings.ContainsAny(ignoredCharacters, lastVal)) ||
 				(lastType == itemScript || lastType == itemRightDelim || lastType == itemRightParen) {
-				if !endsWithWhitespace(out) {
+				if !endsWithWhitespace(out) && !startsWithWhitespace(item.val) {
 					out += " "
 				}
 			}
@@ -81,7 +81,7 @@ func assembleItems(items []item) string {
 				} else if lastType == itemText && strings.ContainsAny(ignoredCharacters, item.val) {
 					// If last item was translated check if we're trying to add something,
 					// that might be in english or a number right after it
-					if !endsWithWhitespace(out) {
+					if !endsWithWhitespace(out) && !startsWithWhitespace(item.val) {
 						out += " "
 					}
 				}
