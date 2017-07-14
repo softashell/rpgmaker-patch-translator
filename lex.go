@@ -78,7 +78,7 @@ func (l *lexer) peek(locs int) rune {
 
 // emit passes an item back to the client.
 func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.start, l.input[l.start:l.pos], ""}
+	l.items <- item{t, l.start, l.input[l.start:l.pos]}
 
 	l.start = l.pos
 }
@@ -120,7 +120,7 @@ func (l *lexer) acceptRun(valid string) {
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...), ""}
+	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...)}
 
 	return nil
 }

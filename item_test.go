@@ -49,16 +49,7 @@ func TestItemAssembly(t *testing.T) {
 			log.Debug(spew.Sdump(items))
 		}
 
-		var r string
-
-		// Use orignal text as translation
-		for i := range items {
-			if items[i].typ == itemText {
-				items[i].trans += items[i].val
-			}
-		}
-
-		r = assembleItems(items)
+		r := assembleItems(items)
 
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)

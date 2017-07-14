@@ -45,7 +45,7 @@ func translateItems(items []item) string {
 				translation += " "
 			}
 
-			items[i].trans = translation
+			items[i].val = translation
 		}
 	}
 
@@ -70,7 +70,7 @@ func assembleItems(items []item) string {
 				}
 			}
 
-			out += item.trans
+			out += item.val
 		} else if item.typ == itemEOF {
 			break
 		} else if item.typ != itemError {
