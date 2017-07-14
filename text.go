@@ -207,3 +207,11 @@ func escapeText(text string) string {
 
 	return text
 }
+
+func endsWithWhitespace(text string) bool {
+	if strings.HasSuffix(text, " ") || strings.HasSuffix(text, "　") {
+		return true
+	}
+
+	return false
+}

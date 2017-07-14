@@ -4,9 +4,10 @@ import "fmt"
 
 // item represents a token or text string returned from the scanner.
 type item struct {
-	typ itemType // The type of this item.
-	pos int
-	val string // The value of this item.
+	typ   itemType // The type of this item.
+	pos   int
+	val   string // The value of this item.
+	trans string
 }
 
 func (i item) String() string {
