@@ -37,6 +37,10 @@ func TestItemAssembly(t *testing.T) {
 			`[レース10]`,
 			`[レース 10]`,
 		},
+		{
+			`%sの%sを %s 奪った`,
+			`%s の %s を %s 奪った`,
+		},
 	}
 
 	for _, pair := range tests {
@@ -52,7 +56,7 @@ func TestItemAssembly(t *testing.T) {
 		r := assembleItems(items)
 
 		if r != pair.output {
-			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\nitems:\n%s", pair.input, pair.output, r, spew.Sdump(items))
 		}
 	}
 }
