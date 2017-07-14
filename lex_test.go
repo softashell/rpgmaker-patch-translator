@@ -219,6 +219,10 @@ func TestTranslatableTextExtraction(t *testing.T) {
 			`"0x\#{text}"`,
 			``,
 		},
+		{
+			`[レース10]`,
+			`レース`,
+		},
 	}
 
 	for _, pair := range tests {
