@@ -52,7 +52,8 @@ func shouldTranslateContext(c, text string) bool {
 				strings.Contains(c, "防具/") || // Armor
 				strings.Contains(c, "道具/") || // Tools
 				strings.Contains(c, "メニュー設計/") || // Menu
-				strings.Contains(c, "コンフィグ/") || // Config
+				strings.Contains(c, "戦闘コマンド/") || // Battle
+				strings.Contains(c, "コンフィグ/") || strings.Contains(c, "用語設定/") || // Config
 				strings.Contains(c, "クエスト/") || // Quest
 				strings.Contains(c, "依頼主") || // Client name
 				strings.Contains(c, "マップ選択画面") || // Map selection
