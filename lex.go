@@ -15,6 +15,7 @@ const (
 	// Skipping these might not actually be such a good idea since in some cases translator will lack context
 	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY.,!?" // + " "
 	numbers           = "0123456789０１２３４５６７８９"
+	numberEndings     = "つ十百千万"
 )
 
 // next returns the next rune in the input.
@@ -387,7 +388,9 @@ Loop:
 			l.acceptRun(numbers)
 		case strings.ContainsRune("%％", r):
 			continue
-		case strings.ContainsRune("つ十百千万", r):
+		case r == '階': // Floor
+			continue
+		case strings.ContainsRune(numberEndings, r):
 			break Loop // Shouldn't have more than one of these
 		default:
 			l.backup(1)
