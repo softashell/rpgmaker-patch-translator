@@ -381,6 +381,8 @@ Loop:
 			break Loop
 		case strings.ContainsRune(numbers, r):
 			l.acceptRun(numbers)
+		case strings.ContainsRune("%％", r):
+			continue
 		case strings.ContainsRune("つ十百千万", r):
 			break Loop // Shouldn't have more than one of these
 		default:

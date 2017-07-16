@@ -274,6 +274,10 @@ func TestNumberExtraction(t *testing.T) {
 			`[レース10]`,
 			`10`,
 		},
+		{
+			`ＨＰとＭＰを１００％回復する`,
+			`１００％`,
+		},
 	}
 
 	for _, pair := range tests {
