@@ -37,6 +37,7 @@ const (
 	itemParameter
 	itemScript
 	itemRubyBlock
+	itemNumber
 )
 
 func (t itemType) String() string {
@@ -63,6 +64,8 @@ func (t itemType) String() string {
 		return "itemScript"
 	case itemRubyBlock:
 		return "itemRubyBlock"
+	case itemNumber:
+		return "itemNumber"
 	default:
 		panic(fmt.Sprintf("unknown item type: %d", t))
 	}

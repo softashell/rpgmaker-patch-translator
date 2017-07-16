@@ -13,7 +13,8 @@ const (
 	slashCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY0123456789[]{}()\\/<>!|$^."
 	rawCharacters   = "\u3000\t\n・！？。…「」『』()（）/\"“”[]【】<>〈〉：:*＊_＿#$%="
 	// Skipping these might not actually be such a good idea since in some cases translator will lack context
-	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY0123456789.,!?" // + " "
+	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY.,!?" // + " "
+	numbers           = "0123456789０１２３４５６７８９"
 )
 
 // next returns the next rune in the input.
@@ -176,8 +177,10 @@ Loop:
 			return lexScript
 		case r == '#' && l.peek(1) == '{':
 			l.emitBefore(itemText)
-
 			return lexRubyBlock
+		case strings.ContainsRune(numbers, r):
+			l.emitBefore(itemText)
+			return lexNumber
 		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
 			l.emitBefore(itemText)
 			l.next()
@@ -364,6 +367,29 @@ Loop:
 	}
 
 	l.emit(itemRubyBlock)
+
+	return lexText
+}
+
+func lexNumber(l *lexer) stateFn {
+	log.Debugf("lexNumber %q", l.input[l.pos:])
+
+Loop:
+	for {
+		switch r := l.next(); {
+		case r == eof:
+			break Loop
+		case strings.ContainsRune(numbers, r):
+			l.acceptRun(numbers)
+		case strings.ContainsRune("つ十百千万", r):
+			break Loop // Shouldn't have more than one of these
+		default:
+			l.backup(1)
+			break Loop
+		}
+	}
+
+	l.emit(itemNumber)
 
 	return lexText
 }

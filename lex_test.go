@@ -121,7 +121,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`\\\>…「\\C[10]バッポウ\\C[0]」再出現カウント： \\C[3] \\V[491] \\C[0]\\\>\\\>　\\C[14]※出現場所：キータニ平原\\\>　\\C[14]※カウントが 0 になると再挑戦可能になります。`,
-			`バッポウ再出現カウント※出現場所キータニ平原※カウントが になると再挑戦可能になります`,
+			`バッポウ再出現カウント※出現場所キータニ平原※カウントが  になると再挑戦可能になります`,
 		},
 		{
 			`【\\C[14]骨董屋\\C[0]】　「謎の防具」か。　ほぅ、複数持っているようだな。　一気に鑑定するかい？\\C[3] \\V[982] G\\C[0] 頂くけどな。\\$`,
@@ -141,7 +141,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		},
 		{
 			`\\\>牡丹の命が５回復した。\\|\\.\\^`,
-			`牡丹の命が５回復した`,
+			`牡丹の命が回復した`,
 		},
 		{
 			`氷結水　(残\\V[29]) en(s[28])`,
@@ -237,13 +237,65 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		var r string
 
 		for _, item := range items {
-			if item.typ == itemText && shouldTranslateText(item.val) {
+			if (item.typ == itemText || item.typ == itemNumber) && shouldTranslateText(item.val) {
 				r += item.val
 			}
 		}
 
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
+		}
+	}
+}
+
+func TestNumberExtraction(t *testing.T) {
+	var tests = []testpair{
+		{
+			`「そ、そうなのかい……、さ、30万かぁー」`,
+			`30万`,
+		},
+		{
+			`0\G 手に入れた！`,
+			`0`,
+		},
+		{
+			`牡丹の命が５回復した。\|\.\^`,
+			`５`,
+		},
+		{
+			`@-1「あらら」@15`,
+			``,
+		},
+		{
+			`"0x#{text}"`,
+			`0`,
+		},
+		{
+			`[レース10]`,
+			`10`,
+		},
+	}
+
+	for _, pair := range tests {
+		items, err := parseText(pair.input)
+
+		if err != nil {
+			log.Errorf("%s\ntext: %q", err, pair.input)
+			log.Error(spew.Sdump(items))
+		} else {
+			log.Debug(spew.Sdump(items))
+		}
+
+		var r string
+
+		for _, item := range items {
+			if item.typ == itemNumber {
+				r += item.val
+			}
+		}
+
+		if r != pair.output {
+			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\nitems:\n%s", pair.input, pair.output, r, spew.Sdump(items))
 		}
 	}
 }

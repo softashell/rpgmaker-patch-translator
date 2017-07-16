@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/text/width"
+
 	log "github.com/Sirupsen/logrus"
 )
 
@@ -46,6 +48,18 @@ func translateItems(items []item) string {
 			}
 
 			items[i].val = translation
+		} else if items[i].typ == itemNumber {
+			text := items[i].val
+			text = width.Narrow.String(text)
+
+			text, err := translateString(text)
+			if err != nil {
+				log.Fatal("failed to translate item", err)
+			}
+
+			text = strings.ToLower(text)
+
+			items[i].val = text
 		}
 	}
 
@@ -68,6 +82,10 @@ func assembleItems(items []item) string {
 				if !endsWithWhitespace(out) && !startsWithWhitespace(item.val) {
 					out += " "
 				}
+			} else if lastType == itemNumber {
+				if !endsWithWhitespace(out) {
+					out += " "
+				}
 			}
 
 			out += item.val
@@ -85,7 +103,11 @@ func assembleItems(items []item) string {
 						out += " "
 					}
 				}
-			} else if item.typ == itemScript && lastType == itemText {
+			} else if item.typ == itemScript && (lastType == itemText || lastType == itemNumber) {
+				if !endsWithWhitespace(out) {
+					out += " "
+				}
+			} else if item.typ == itemNumber && lastType == itemText {
 				if !endsWithWhitespace(out) {
 					out += " "
 				}

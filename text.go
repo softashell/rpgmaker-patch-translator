@@ -41,7 +41,7 @@ func getOnlyText(text string) string {
 
 	for _, item := range items {
 		switch item.typ {
-		case itemText, itemRawString:
+		case itemText, itemRawString, itemNumber:
 			out += item.val
 		}
 	}
@@ -88,7 +88,7 @@ func breakLine(text string) string {
 
 	for _, item := range items {
 		switch item.typ {
-		case itemText, itemRawString:
+		case itemText, itemRawString, itemNumber:
 			if len([]rune(justText+item.val)) <= lineLength {
 				out += line
 				out += item.val
