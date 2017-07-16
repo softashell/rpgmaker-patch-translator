@@ -187,6 +187,10 @@ Loop:
 			l.emit(itemRawString)
 
 			return lexText
+		case r == '-' && l.peek(1) == '-':
+			l.emitBefore(itemText)
+			l.acceptRun("-")
+			l.emit(itemRawString)
 		case strings.ContainsRune(ignoredCharacters, r):
 			l.emitBefore(itemText)
 
