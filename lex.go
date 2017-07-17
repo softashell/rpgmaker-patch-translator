@@ -13,9 +13,10 @@ const (
 	slashCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY0123456789[]{}()\\/<>!|$^."
 	rawCharacters   = "\u3000\t\n・！？。…「」『』()（）/\"“”[]【】<>〈〉：:*＊_＿#$%="
 	// Skipping these might not actually be such a good idea since in some cases translator will lack context
-	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY.,!?" // + " "
+	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWYａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｘｚｗｙＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＸＺＷＹ.,!?" // + " "
 	numbers           = "0123456789０１２３４５６７８９"
 	numberEndings     = "つ十百千万"
+	numberAdditions   = "%％階"
 )
 
 // next returns the next rune in the input.
@@ -386,11 +387,7 @@ Loop:
 			break Loop
 		case strings.ContainsRune(numbers, r):
 			l.acceptRun(numbers)
-		case strings.ContainsRune("%％", r):
-			continue
-		case r == '階': // Floor
-			continue
-		case strings.ContainsRune(numberEndings, r):
+		case strings.ContainsRune(numberEndings, r) || strings.ContainsRune(numberAdditions, r):
 			break Loop // Shouldn't have more than one of these
 		default:
 			l.backup(1)
