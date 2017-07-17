@@ -29,7 +29,9 @@ func shouldTranslateContext(c, text string) bool {
 		}
 
 		if strings.HasPrefix(c, ": Scripts/") {
-			if strings.Contains(c, "Vocab/") {
+			if strings.Contains(c, "Vocab/") ||
+				(strings.HasPrefix(c, ": Scripts/Window_") &&
+					(strings.Contains(c, "Info/") || strings.Contains(c, "Status/"))) {
 				return true
 			}
 
