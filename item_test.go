@@ -41,6 +41,10 @@ func TestItemAssembly(t *testing.T) {
 			`%sの%sを %s 奪った`,
 			`%s の %s を %s 奪った`,
 		},
+		{
+			`[武器]攻撃時に\V[19]%の闇属性追加ダメージ`,
+			`[武器]攻撃時に \V[19]%の闇属性追加ダメージ`,
+		},
 	}
 
 	for _, pair := range tests {
