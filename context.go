@@ -42,7 +42,7 @@ func shouldTranslateContext(c, text string) bool {
 			return false
 		} else if strings.HasPrefix(c, " DB:DataBase") {
 			if strings.Contains(c, "アクター/") || //Actor
-				strings.Contains(c, "キャラ名") || // Character name
+				strings.Contains(c, "キャラ名") || strings.Contains(c, "キャラクター名") || strings.HasSuffix(c, "名") || strings.HasSuffix(c, "名前") || // Character name
 				strings.Contains(c, "タイトル") || // Title
 				strings.Contains(c, "NPC/") ||
 				strings.Contains(c, "ステート/") || strings.Contains(c, "状態名") || // State
