@@ -11,7 +11,7 @@ import (
 
 const (
 	slashCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWY0123456789[]{}()\\/<>!|$^."
-	rawCharacters   = "\u3000\t\n・！？。…「」『』()（）/\"“”[]【】<>〈〉：:*＊_＿#$%="
+	rawCharacters   = "\u3000\t\n・･！？。…「」『』()（）/\"“”[]【】<>〈〉：:*＊_＿#$%="
 	// Skipping these might not actually be such a good idea since in some cases translator will lack context
 	ignoredCharacters = "abcdefghijklmnopqrstuvxzwyABCDEFGHIJKLMNOPQRSTUVXZWYａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｘｚｗｙＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＸＺＷＹ.,!?" // + " "
 	numbers           = "0123456789０１２３４５６７８９"
