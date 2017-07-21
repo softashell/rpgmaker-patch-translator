@@ -29,9 +29,18 @@ func shouldTranslateContext(c, text string) bool {
 		}
 
 		if strings.HasPrefix(c, ": Scripts/") {
-			if strings.Contains(c, "Vocab/") ||
-				(strings.HasPrefix(c, ": Scripts/Window_") &&
-					(strings.Contains(c, "Info/") || strings.Contains(c, "Status/"))) {
+			if strings.Contains(c, "Vocab/") {
+				return true
+			}
+
+			//TODO: Check against basename for all pictures to avoid trainslating filenames
+			// It's often a problem with Scripts/Window_Status/
+			if strings.HasPrefix(c, ": Scripts/Window_Status/") {
+				return false
+			}
+
+			if strings.HasPrefix(c, ": Scripts/Window_") &&
+				(strings.Contains(c, "Info/") || strings.Contains(c, "Status/")) {
 				return true
 			}
 
