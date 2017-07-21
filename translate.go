@@ -26,6 +26,10 @@ func translateString(text string) (string, error) {
 		return text, nil
 	}
 
+	if text == "っ" {
+		return "", nil
+	}
+
 	var response translateResponse
 
 	request := translateRequest{

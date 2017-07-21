@@ -161,10 +161,6 @@ func shouldTranslateText(text string) bool {
 		return false
 	}
 
-	if text == "っ" {
-		return false
-	}
-
 	//Regex
 	if strings.HasPrefix(text, "/") && strings.HasSuffix(text, "/") {
 		return false
