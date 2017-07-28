@@ -58,21 +58,23 @@ func main() {
 	fmt.Println("- line length:", lineLength)
 	fmt.Println("- line length tolerance:", lineTolerance)
 
-	count := len(fileList)
-	for i, file := range fileList {
-		fmt.Printf("Processing %q (%d/%d)\n", filepath.Base(file), i+1, count)
+	fileCount := len(fileList)
 
-		patch, err := parsePatchFile(file)
+	fmt.Printf("found %d files to translate\n", fileCount)
+
+	jobs, results := createFileWorkers(fileCount)
+
+	go func() {
+		for _, file := range fileList {
+			jobs <- file
+		}
+		close(jobs)
+	}()
+
+	for err := range results {
 		if err != nil {
 			log.Error(err)
-			continue
 		}
-
-		patch, err = translatePatch(patch)
-		check(err)
-
-		err = writePatchFile(patch)
-		check(err)
 	}
 
 	fmt.Printf("Finished in %s\n", time.Since(start))

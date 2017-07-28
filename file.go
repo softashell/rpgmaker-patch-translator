@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dimchansky/utfbom"
+	"github.com/pkg/errors"
 	"gopkg.in/vbauerster/mpb.v2"
 )
 
@@ -95,7 +95,7 @@ func parsePatchFile(file string) (patchFile, error) {
 
 	f, err := os.Open(file)
 	if err != nil {
-		return patch, err
+		return patch, errors.Wrapf(err, "failed to open patch file: %q", file)
 	}
 	defer f.Close()
 
@@ -213,6 +213,10 @@ func parsePatchFile(file string) (patchFile, error) {
 		}
 	}
 
+	if err := s.Err(); err != nil {
+		return patch, errors.Wrapf(err, "error while scanning patch file: %q", file)
+	}
+
 	if len(patch.version) < 3 {
 		err = fmt.Errorf("No patch version found in %q", file)
 	}
@@ -220,13 +224,12 @@ func parsePatchFile(file string) (patchFile, error) {
 	return patch, err
 }
 
-func translatePatch(patch patchFile) (patchFile, error) {
+func translatePatch(p *mpb.Progress, fileNum, fileCount int, patch patchFile) (patchFile, error) {
 	var err error
 
 	// TODO: Don't create workers for each file, should make them global
 	count := len(patch.blocks)
 	workerCount := runtime.NumCPU() + 1
-
 	if workerCount > count {
 		workerCount = count
 	}
@@ -250,14 +253,11 @@ func translatePatch(patch patchFile) (patchFile, error) {
 		}(jobs, results)
 	}
 
-	p := mpb.New().
-		RefreshRate(100 * time.Millisecond)
-
-	defer p.Stop()
+	name := fmt.Sprintf("#%d/%d %s", fileNum, fileCount, filepath.Base(patch.path))
 
 	bar := p.AddBar(int64(count)).
-		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace).
-		AppendETA(2, 0)
+		PrependName(name, 25, mpb.DwidthSync|mpb.DextraSpace).
+		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
 
 	// Add blocks in background to job queue
 	go func() {
@@ -271,13 +271,13 @@ func translatePatch(patch patchFile) (patchFile, error) {
 
 	// Start reading results, will block if there are none
 	for a := count; a > 0; a-- {
-
 		j := <-results
-
 		patch.blocks[j.id] = j.block
-
 		bar.Incr(1)
 	}
+	close(results)
+
+	p.RemoveBar(bar)
 
 	return patch, err
 }
