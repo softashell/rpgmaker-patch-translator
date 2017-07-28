@@ -23,6 +23,10 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 
 	var fileCounter int
 
+	bar := p.AddBar(int64(fileCount)).
+		PrependName("All file progress", 25, mpb.DwidthSync|mpb.DextraSpace).
+		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
+
 	// Start workers
 	for w := 1; w <= workerCount; w++ {
 		go func(jobs <-chan string, results chan<- error) {
@@ -30,6 +34,8 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 				fileCounter++
 
 				results <- processFile(p, fileCounter, fileCount, j)
+
+				bar.Incr(1)
 			}
 			// not going to get any more jobs, remove worker and close result channel if it was the last worker
 			workerCount--
