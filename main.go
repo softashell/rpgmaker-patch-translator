@@ -60,7 +60,7 @@ func main() {
 
 	fileCount := len(fileList)
 
-	fmt.Printf("found %d files to translate\n", fileCount)
+	fmt.Printf("Found %d files to translate\n", fileCount)
 
 	jobs, results := createFileWorkers(fileCount)
 

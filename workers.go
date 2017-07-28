@@ -24,7 +24,7 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	var fileCounter int
 
 	bar := p.AddBar(int64(fileCount)).
-		PrependName("All file progress", 25, mpb.DwidthSync|mpb.DextraSpace).
+		PrependName("Overall progress", 25, mpb.DwidthSync|mpb.DextraSpace).
 		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
 
 	// Start workers
