@@ -10,7 +10,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/dimchansky/utfbom"
 	"github.com/pkg/errors"
-	"gopkg.in/vbauerster/mpb.v2"
+
+	"github.com/vbauerster/mpb"
+	"github.com/vbauerster/mpb/decor"
 )
 
 type patchFile struct {
@@ -224,34 +226,26 @@ func parsePatchFile(file string) (patchFile, error) {
 }
 
 func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
-	count := len(patch.blocks)
+	blockCount := len(patch.blocks)
 
-	jobs, results := createBlockWorkers(count)
+	jobs, results := createBlockWorkers(blockCount)
+
+	bar := p.AddBar(int64(blockCount),
+		mpb.PrependDecorators(
+			decor.StaticName(filepath.Base(patch.path), 25, decor.DwidthSync|decor.DextraSpace),
+			decor.Counters("%4s/%4s", 0, 10, decor.DwidthSync|decor.DextraSpace),
+		))
 
 	// Add blocks in background to job queue
 	go func() {
 		for i, block := range patch.blocks {
-			//patch.blocks[i] = parseBlock(block)
 			w := blockWork{i, block}
 			jobs <- w
 		}
 		close(jobs)
 	}()
 
-	bar := p.AddBar(int64(count)).
-		PrependName(filepath.Base(patch.path), 25, mpb.DwidthSync|mpb.DextraSpace).
-		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
-
 	// Start reading results, will block if there are none
-	/*
-		for a := count; a > 0; a-- {
-			j := <-results
-			patch.blocks[j.id] = j.block
-			bar.Incr(1)
-		}
-		close(results)
-	*/
-
 	for j := range results {
 		patch.blocks[j.id] = j.block
 		bar.Incr(1)

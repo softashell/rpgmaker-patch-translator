@@ -4,7 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/vbauerster/mpb.v2"
+	"github.com/vbauerster/mpb"
+	"github.com/vbauerster/mpb/decor"
 )
 
 type blockWork struct {
@@ -24,11 +25,15 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	jobs := make(chan string, workerCount)
 	results := make(chan error, workerCount)
 
-	p := mpb.New().RefreshRate(100 * time.Millisecond)
+	p := mpb.New(
+		mpb.WithRefreshRate(100 * time.Millisecond),
+	)
 
-	bar := p.AddBar(int64(fileCount)).
-		PrependName("Overall progress", 25, mpb.DwidthSync|mpb.DextraSpace).
-		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
+	bar := p.AddBar(int64(fileCount),
+		mpb.PrependDecorators(
+			decor.StaticName("Overall progress", 25, decor.DwidthSync|decor.DextraSpace),
+			decor.Counters("%4s/%4s", 0, 10, decor.DwidthSync|decor.DextraSpace),
+		))
 
 	lock := sync.Mutex{}
 
@@ -63,10 +68,10 @@ func createBlockWorkers(fileCount int) (chan blockWork, chan blockWork) {
 		workerCount = fileCount
 	}
 
-	lock := sync.Mutex{}
-
 	jobs := make(chan blockWork, workerCount)
 	results := make(chan blockWork, workerCount)
+
+	lock := sync.Mutex{}
 
 	for w := 1; w <= workerCount; w++ {
 		go func(jobs <-chan blockWork, results chan<- blockWork) {
