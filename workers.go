@@ -21,8 +21,6 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 
 	p := mpb.New().RefreshRate(100 * time.Millisecond)
 
-	var fileCounter int
-
 	bar := p.AddBar(int64(fileCount)).
 		PrependName("Overall progress", 25, mpb.DwidthSync|mpb.DextraSpace).
 		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
@@ -31,10 +29,7 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	for w := 1; w <= workerCount; w++ {
 		go func(jobs <-chan string, results chan<- error) {
 			for j := range jobs {
-				fileCounter++
-
-				results <- processFile(p, fileCounter, fileCount, j)
-
+				results <- processFile(p, j)
 				bar.Incr(1)
 			}
 			// not going to get any more jobs, remove worker and close result channel if it was the last worker
@@ -49,13 +44,13 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	return jobs, results
 }
 
-func processFile(p *mpb.Progress, fileNum, fileCount int, file string) error {
+func processFile(p *mpb.Progress, file string) error {
 	patch, err := parsePatchFile(file)
 	if err != nil {
 		return err
 	}
 
-	patch, err = translatePatch(p, fileNum, fileCount, patch)
+	patch, err = translatePatch(p, patch)
 	if err != nil {
 		return err
 	}

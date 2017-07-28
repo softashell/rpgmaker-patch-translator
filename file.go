@@ -224,7 +224,7 @@ func parsePatchFile(file string) (patchFile, error) {
 	return patch, err
 }
 
-func translatePatch(p *mpb.Progress, fileNum, fileCount int, patch patchFile) (patchFile, error) {
+func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
 	var err error
 
 	// TODO: Don't create workers for each file, should make them global
@@ -253,10 +253,8 @@ func translatePatch(p *mpb.Progress, fileNum, fileCount int, patch patchFile) (p
 		}(jobs, results)
 	}
 
-	name := fmt.Sprintf("#%d/%d %s", fileNum, fileCount, filepath.Base(patch.path))
-
 	bar := p.AddBar(int64(count)).
-		PrependName(name, 25, mpb.DwidthSync|mpb.DextraSpace).
+		PrependName(filepath.Base(patch.path), 25, mpb.DwidthSync|mpb.DextraSpace).
 		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
 
 	// Add blocks in background to job queue
