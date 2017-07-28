@@ -1,14 +1,19 @@
 package main
 
 import (
-	"runtime"
+	"sync"
 	"time"
 
 	"gopkg.in/vbauerster/mpb.v2"
 )
 
+type blockWork struct {
+	id    int // Only needed to preserve order in patch file
+	block patchBlock
+}
+
 func createFileWorkers(fileCount int) (chan string, chan error) {
-	workerCount := runtime.NumCPU() / 2
+	workerCount := cFileThreads
 
 	if workerCount < 1 {
 		workerCount = 1
@@ -25,6 +30,8 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 		PrependName("Overall progress", 25, mpb.DwidthSync|mpb.DextraSpace).
 		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
 
+	lock := sync.Mutex{}
+
 	// Start workers
 	for w := 1; w <= workerCount; w++ {
 		go func(jobs <-chan string, results chan<- error) {
@@ -32,7 +39,10 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 				results <- processFile(p, j)
 				bar.Incr(1)
 			}
-			// not going to get any more jobs, remove worker and close result channel if it was the last worker
+
+			lock.Lock()
+			defer lock.Unlock()
+
 			workerCount--
 			if workerCount < 1 {
 				close(results)
@@ -44,21 +54,36 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	return jobs, results
 }
 
-func processFile(p *mpb.Progress, file string) error {
-	patch, err := parsePatchFile(file)
-	if err != nil {
-		return err
+func createBlockWorkers(fileCount int) (chan blockWork, chan blockWork) {
+	workerCount := cBlockThreads
+
+	if workerCount < 1 {
+		workerCount = 1
+	} else if workerCount > fileCount {
+		workerCount = fileCount
 	}
 
-	patch, err = translatePatch(p, patch)
-	if err != nil {
-		return err
+	lock := sync.Mutex{}
+
+	jobs := make(chan blockWork, workerCount)
+	results := make(chan blockWork, workerCount)
+
+	for w := 1; w <= workerCount; w++ {
+		go func(jobs <-chan blockWork, results chan<- blockWork) {
+			for j := range jobs {
+				j.block = parseBlock(j.block)
+				results <- j
+			}
+
+			lock.Lock()
+			defer lock.Unlock()
+
+			workerCount--
+			if workerCount < 1 {
+				close(results)
+			}
+		}(jobs, results)
 	}
 
-	err = writePatchFile(patch)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return jobs, results
 }

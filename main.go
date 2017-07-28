@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -25,6 +26,9 @@ var (
 	// Flags
 	lineLength    int
 	lineTolerance int
+
+	cFileThreads  int
+	cBlockThreads int
 )
 
 func main() {
@@ -147,6 +151,9 @@ func check(err error) {
 func parseFlags() []string {
 	flag.IntVar(&lineLength, "length", -1, "Max line legth")
 	flag.IntVar(&lineTolerance, "tolerance", 5, "Max amount of characters allowed to go over the line limit")
+
+	flag.IntVar(&cFileThreads, "filethreads", runtime.NumCPU()/2+1, "Amount of threads to use for processing files")
+	flag.IntVar(&cBlockThreads, "blockthreads", runtime.NumCPU()*2+1, "Amount of threads to use for processing blocks in each file")
 
 	flag.Parse()
 

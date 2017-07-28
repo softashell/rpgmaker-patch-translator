@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -225,37 +224,9 @@ func parsePatchFile(file string) (patchFile, error) {
 }
 
 func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
-	var err error
-
-	// TODO: Don't create workers for each file, should make them global
 	count := len(patch.blocks)
-	workerCount := runtime.NumCPU() + 1
-	if workerCount > count {
-		workerCount = count
-	}
 
-	// Only needed to preserve order in patch file
-	type blockWork struct {
-		id    int
-		block patchBlock
-	}
-
-	jobs := make(chan blockWork, workerCount)
-	results := make(chan blockWork, workerCount)
-
-	// Start workers
-	for w := 1; w <= workerCount; w++ {
-		go func(jobs <-chan blockWork, results chan<- blockWork) {
-			for j := range jobs {
-				j.block = parseBlock(j.block)
-				results <- j
-			}
-		}(jobs, results)
-	}
-
-	bar := p.AddBar(int64(count)).
-		PrependName(filepath.Base(patch.path), 25, mpb.DwidthSync|mpb.DextraSpace).
-		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
+	jobs, results := createBlockWorkers(count)
 
 	// Add blocks in background to job queue
 	go func() {
@@ -267,15 +238,45 @@ func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
 		close(jobs)
 	}()
 
+	bar := p.AddBar(int64(count)).
+		PrependName(filepath.Base(patch.path), 25, mpb.DwidthSync|mpb.DextraSpace).
+		PrependCounters("%4s/%4s", 0, 10, mpb.DwidthSync|mpb.DextraSpace)
+
 	// Start reading results, will block if there are none
-	for a := count; a > 0; a-- {
-		j := <-results
+	/*
+		for a := count; a > 0; a-- {
+			j := <-results
+			patch.blocks[j.id] = j.block
+			bar.Incr(1)
+		}
+		close(results)
+	*/
+
+	for j := range results {
 		patch.blocks[j.id] = j.block
 		bar.Incr(1)
 	}
-	close(results)
 
 	p.RemoveBar(bar)
 
-	return patch, err
+	return patch, nil
+}
+
+func processFile(p *mpb.Progress, file string) error {
+	patch, err := parsePatchFile(file)
+	if err != nil {
+		return err
+	}
+
+	patch, err = translatePatch(p, patch)
+	if err != nil {
+		return err
+	}
+
+	err = writePatchFile(patch)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
