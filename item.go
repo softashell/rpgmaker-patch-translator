@@ -36,7 +36,7 @@ func translateItems(items []item) string {
 		if items[i].typ == itemText {
 			translation, err := translateString(items[i].val)
 			if err != nil {
-				log.Fatal("failed to translate item", err)
+				log.Fatalf("failed to translate item: %v", err)
 			}
 
 			if strings.HasPrefix(items[i].val, " ") && !strings.HasPrefix(translation, " ") {
@@ -54,7 +54,7 @@ func translateItems(items []item) string {
 
 			text, err := translateString(text)
 			if err != nil {
-				log.Fatal("failed to translate item", err)
+				log.Fatalf("failed to translate item: %v", err)
 			}
 
 			text = strings.ToLower(text)

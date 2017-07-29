@@ -38,14 +38,9 @@ func translateString(text string) (string, error) {
 		Text: text,
 	}
 
-	resp, reply, errs := gorequest.New().Post("http://127.0.0.1:3000/api/translate").
+	_, _, errs := gorequest.New().Post("http://127.0.0.1:3000/api/translate").
 		Type("json").SendStruct(&request).EndStruct(&response)
 	for _, err := range errs {
-		log.WithFields(log.Fields{
-			"response": resp,
-			"reply":    reply,
-		}).Error(err)
-
 		return "", err
 	}
 
