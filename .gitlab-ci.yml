@@ -6,7 +6,7 @@ before_script:
 test:
   dependencies: []
   script:
-    - go test -v
+    - go test -v ./...
 
 build:win64:
   stage: build
