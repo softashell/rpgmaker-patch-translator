@@ -6,6 +6,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/parnurzeal/gorequest"
+	"github.com/pkg/errors"
 )
 
 type translateRequest struct {
@@ -41,7 +42,7 @@ func translateString(text string) (string, error) {
 	_, _, errs := gorequest.New().Post("http://127.0.0.1:3000/api/translate").
 		Type("json").SendStruct(&request).EndStruct(&response)
 	for _, err := range errs {
-		return "", err
+		return "", errors.Wrap(err, "http request failed")
 	}
 
 	out := response.TranslationText

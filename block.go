@@ -41,7 +41,6 @@ func parseBlock(block patchBlock) patchBlock {
 
 		if !parsed {
 			items, err = parseText(block.original)
-
 			if err != nil {
 				logBlockError(err, block, items)
 
@@ -51,7 +50,12 @@ func parseBlock(block patchBlock) patchBlock {
 			parsed = true
 		}
 
-		t.text = translateItems(items)
+		t.text, err = translateItems(items)
+		if err != nil {
+			// This should only fail if translation service is down
+			log.Fatalf("failed to translate items: %v", err)
+		}
+
 		t.translated = true
 		t.touched = true
 		t.contexts = good

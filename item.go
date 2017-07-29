@@ -7,6 +7,7 @@ import (
 	"golang.org/x/text/width"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/pkg/errors"
 )
 
 func parseText(text string) ([]item, error) {
@@ -31,12 +32,12 @@ func parseText(text string) ([]item, error) {
 	return items, err
 }
 
-func translateItems(items []item) string {
+func translateItems(items []item) (string, error) {
 	for i := range items {
 		if items[i].typ == itemText {
 			translation, err := translateString(items[i].val)
 			if err != nil {
-				log.Fatalf("failed to translate item: %v", err)
+				return "", errors.Wrapf(err, "failed to translate [%s] %q", items[i].typ, items[i].val)
 			}
 
 			if strings.HasPrefix(items[i].val, " ") && !strings.HasPrefix(translation, " ") {
@@ -54,7 +55,7 @@ func translateItems(items []item) string {
 
 			text, err := translateString(text)
 			if err != nil {
-				log.Fatalf("failed to translate item: %v", err)
+				return "", errors.Wrapf(err, "failed to translate [%s] %q", items[i].typ, items[i].val)
 			}
 
 			text = strings.ToLower(text)
@@ -63,7 +64,7 @@ func translateItems(items []item) string {
 		}
 	}
 
-	return assembleItems(items)
+	return assembleItems(items), nil
 }
 
 func assembleItems(items []item) string {
