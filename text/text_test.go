@@ -63,7 +63,7 @@ func TestPatchUnescape(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		r := UnescapeText(pair.input)
+		r := Unescape(pair.input)
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
@@ -82,7 +82,7 @@ func TestPatchEscape(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		r := EscapeText(pair.input)
+		r := Escape(pair.input)
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}

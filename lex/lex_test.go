@@ -74,7 +74,7 @@ func TestRawTextExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		r := getOnlyText(text.UnescapeText(pair.input))
+		r := getOnlyText(text.Unescape(pair.input))
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
@@ -239,7 +239,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		items, err := ParseText(text.UnescapeText(pair.input))
+		items, err := ParseText(text.Unescape(pair.input))
 		if err != nil {
 			log.Errorf("%s\ntext: %q", err, pair.input)
 			log.Error(spew.Sdump(items))

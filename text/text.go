@@ -61,7 +61,7 @@ func ReplaceRegex(text string, expr string, repl string) string {
 	return regex.ReplaceAllString(text, repl)
 }
 
-func UnescapeText(text string) string {
+func Unescape(text string) string {
 	text = strings.Replace(text, `\\`, `\`, -1)
 
 	text = strings.Replace(text, `\>`, `>`, -1)
@@ -70,7 +70,7 @@ func UnescapeText(text string) string {
 	return text
 }
 
-func EscapeText(text string) string {
+func Escape(text string) string {
 	text = strings.Replace(text, `\`, `\\`, -1)
 
 	text = strings.Replace(text, `>`, `\>`, -1)
