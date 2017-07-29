@@ -21,7 +21,7 @@ func parseText(text string) ([]item, error) {
 		items = append(items, item)
 
 		if item.typ == itemError {
-			err = fmt.Errorf("Failed to parse text")
+			err = fmt.Errorf("Failed to parse text: %s", item.val)
 		}
 
 		if item.typ == itemEOF || item.typ == itemError {
