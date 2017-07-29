@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/text"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/dimchansky/utfbom"
 	"github.com/pkg/errors"
@@ -40,7 +42,7 @@ func writePatchFile(patch patchFile) error {
 		_, err = w.WriteString("> BEGIN STRING\n")
 		check(err)
 
-		_, err = w.WriteString(escapeText(block.original))
+		_, err = w.WriteString(text.EscapeText(block.original))
 		check(err)
 
 		for _, t := range block.translations {
@@ -59,7 +61,7 @@ func writePatchFile(patch patchFile) error {
 			var trans string
 
 			if t.translated {
-				text := escapeText(t.text)
+				text := text.EscapeText(t.text)
 
 				if t.touched && shouldBreakLines(t.contexts) {
 					trans = breakLines(text)
@@ -172,13 +174,13 @@ func parsePatchFile(file string) (patchFile, error) {
 					}
 
 					translations = append(translations, translationBlock{
-						text:       unescapeText(trans),
+						text:       text.UnescapeText(trans),
 						contexts:   contexts,
 						translated: translated,
 					})
 				} else if len(contexts) > 0 {
 					translations = append(translations, translationBlock{
-						text:       unescapeText(trans),
+						text:       text.UnescapeText(trans),
 						contexts:   contexts,
 						translated: false,
 					})
@@ -186,7 +188,7 @@ func parsePatchFile(file string) (patchFile, error) {
 					log.Errorf("No contexts found for block with original text:\n%q", orig)
 				}
 
-				block.original = unescapeText(orig)
+				block.original = text.UnescapeText(orig)
 				block.translations = translations
 
 				patch.blocks = append(patch.blocks, block)

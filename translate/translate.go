@@ -1,9 +1,10 @@
-package main
+package translate
 
 import (
 	"strings"
 	"unicode"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 	log "github.com/Sirupsen/logrus"
 	"github.com/parnurzeal/gorequest"
 	"github.com/pkg/errors"
@@ -22,12 +23,12 @@ type translateResponse struct {
 	TranslationText string `json:"translationText"`
 }
 
-func translateString(text string) (string, error) {
-	if !shouldTranslateText(text) {
-		return text, nil
+func String(str string) (string, error) {
+	if !text.ShouldTranslate(str) {
+		return str, nil
 	}
 
-	if text == "っ" {
+	if str == "っ" {
 		return "", nil
 	}
 
@@ -36,7 +37,7 @@ func translateString(text string) (string, error) {
 	request := translateRequest{
 		From: "ja",
 		To:   "en",
-		Text: text,
+		Text: str,
 	}
 
 	_, _, errs := gorequest.New().Post("http://127.0.0.1:3000/api/translate").
@@ -48,8 +49,8 @@ func translateString(text string) (string, error) {
 	out := response.TranslationText
 
 	if len(out) < 1 {
-		log.Warnf("Translator returned empty string, replacing with original text %q", text)
-		out = text
+		log.Warnf("Translator returned empty string, replacing with original text %q", str)
+		out = str
 	} else {
 		out = cleanTranslation(out)
 	}
@@ -57,7 +58,7 @@ func translateString(text string) (string, error) {
 	return out, nil
 }
 
-func cleanTranslation(text string) string {
+func cleanTranslation(str string) string {
 	// Removes any rune that isn't printable or a space
 	isValid := func(r rune) rune {
 		if !unicode.IsPrint(r) && !unicode.IsSpace(r) {
@@ -67,28 +68,28 @@ func cleanTranslation(text string) string {
 		return r
 	}
 
-	text = strings.Map(isValid, text)
+	str = strings.Map(isValid, str)
 
-	text = strings.Replace(text, "\\u0026", "＆", -1)
-	text = strings.Replace(text, "\\u003c", "<", -1)
-	text = strings.Replace(text, "\\u003e", ">", -1)
+	str = strings.Replace(str, "\\u0026", "＆", -1)
+	str = strings.Replace(str, "\\u003c", "<", -1)
+	str = strings.Replace(str, "\\u003e", ">", -1)
 
-	if strings.Contains(text, "\\u0") {
-		log.Warnf("Found unexpected escaped character in translation %s", text)
+	if strings.Contains(str, "\\u0") {
+		log.Warnf("Found unexpected escaped character in translation %s", str)
 	}
 
-	text = strings.Replace(text, "\\", "", -1)
+	str = strings.Replace(str, "\\", "", -1)
 
 	// Repeated whitespace
-	text = replaceRegex(text, `\s{2,}`, " ")
+	str = text.ReplaceRegex(str, `\s{2,}`, " ")
 
 	// ー ー ー ー
-	text = replaceRegex(text, `\s+((\s+)?[-―ー]){2,}`, " ー")
+	str = text.ReplaceRegex(str, `\s+((\s+)?[-―ー]){2,}`, " ー")
 
 	// · · · ·
-	text = replaceRegex(text, `(\s+)?((\s+)?[·]+){3,}`, " ···")
+	str = text.ReplaceRegex(str, `(\s+)?((\s+)?[·]+){3,}`, " ···")
 
-	text = replaceRegex(text, `((\s+)?っ)+`, "")
+	str = text.ReplaceRegex(str, `((\s+)?っ)+`, "")
 
-	return text
+	return str
 }

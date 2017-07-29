@@ -1,6 +1,8 @@
 package main
 
 import (
+	"gitgud.io/softashell/rpgmaker-patch-translator/lex"
+	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -18,12 +20,12 @@ type translationBlock struct {
 }
 
 func parseBlock(block patchBlock) patchBlock {
-	if !shouldTranslateText(block.original) {
+	if !text.ShouldTranslate(block.original) {
 		return block
 	}
 
 	var err error
-	var items []item
+	var items []lex.Item
 	var untranslated []string
 	var translated, parsed bool
 
@@ -40,7 +42,7 @@ func parseBlock(block patchBlock) patchBlock {
 		}
 
 		if !parsed {
-			items, err = parseText(block.original)
+			items, err = lex.ParseText(block.original)
 			if err != nil {
 				logBlockError(err, block, items)
 
@@ -50,7 +52,7 @@ func parseBlock(block patchBlock) patchBlock {
 			parsed = true
 		}
 
-		t.text, err = translateItems(items)
+		t.text, err = lex.TranslateItems(items)
 		if err != nil {
 			// This should only fail if translation service is down
 			log.Fatalf("failed to translate items: %v", err)

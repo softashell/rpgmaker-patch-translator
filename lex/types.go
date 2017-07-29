@@ -1,23 +1,23 @@
-package main
+package lex
 
 import "fmt"
 
-// item represents a token or text string returned from the scanner.
-type item struct {
-	typ itemType // The type of this item.
+type Item struct {
 	pos int
-	val string // The value of this item.
+
+	Typ itemType // The type of this item.
+	Val string   // The value of this item.
 }
 
-func (i item) String() string {
+func (i Item) String() string {
 	switch {
-	case i.typ == itemEOF:
+	case i.Typ == ItemEOF:
 		return "EOF"
-	case i.typ == itemError:
-		return i.val
+	case i.Typ == ItemError:
+		return i.Val
 	}
 
-	return fmt.Sprintf("{%s: %q}", i.typ, i.val)
+	return fmt.Sprintf("{%s: %q}", i.Typ, i.Val)
 }
 
 // itemType identifies the type of lex items.
@@ -26,45 +26,45 @@ type itemType int
 const eof = -1
 
 const (
-	itemError itemType = iota // error occurred; value is text of error
-	itemEOF
-	itemText
-	itemRawString
-	itemLeftDelim
-	itemRightDelim
-	itemLeftParen
-	itemRightParen
-	itemParameter
-	itemScript
-	itemRubyBlock
-	itemNumber
+	ItemError itemType = iota // error occurred; value is text of error
+	ItemEOF
+	ItemText
+	ItemRawString
+	ItemLeftDelim
+	ItemRightDelim
+	ItemLeftParen
+	ItemRightParen
+	ItemParameter
+	ItemScript
+	ItemRubyBlock
+	ItemNumber
 )
 
 func (t itemType) String() string {
 	switch t {
-	case itemError:
+	case ItemError:
 		return "itemError"
-	case itemEOF:
+	case ItemEOF:
 		return "itemEOF"
-	case itemText:
+	case ItemText:
 		return "itemText"
-	case itemRawString:
+	case ItemRawString:
 		return "itemRawString"
-	case itemLeftDelim:
+	case ItemLeftDelim:
 		return "itemLeftDelim"
-	case itemRightDelim:
+	case ItemRightDelim:
 		return "itemRightDelim"
-	case itemLeftParen:
+	case ItemLeftParen:
 		return "itemLeftParen"
-	case itemRightParen:
+	case ItemRightParen:
 		return "itemRightParen"
-	case itemParameter:
+	case ItemParameter:
 		return "itemParameter"
-	case itemScript:
+	case ItemScript:
 		return "itemScript"
-	case itemRubyBlock:
+	case ItemRubyBlock:
 		return "itemRubyBlock"
-	case itemNumber:
+	case ItemNumber:
 		return "itemNumber"
 	default:
 		panic(fmt.Sprintf("unknown item type: %d", t))
@@ -87,7 +87,7 @@ type lexer struct {
 
 	mark rune // The current lexed rune
 
-	items chan item // channel of scanned items
+	items chan Item // channel of scanned items
 }
 
 type lexPosition struct {

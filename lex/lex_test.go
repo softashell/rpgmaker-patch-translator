@@ -1,8 +1,9 @@
-package main
+package lex
 
 import (
 	"testing"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -73,7 +74,7 @@ func TestRawTextExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		r := getOnlyText(unescapeText(pair.input))
+		r := getOnlyText(text.UnescapeText(pair.input))
 		if r != pair.output {
 			t.Errorf("For input:\n%q\nexpected:\n%q\ngot:\n%q\n", pair.input, pair.output, r)
 		}
@@ -238,7 +239,7 @@ func TestTranslatableTextExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		items, err := parseText(unescapeText(pair.input))
+		items, err := ParseText(text.UnescapeText(pair.input))
 		if err != nil {
 			log.Errorf("%s\ntext: %q", err, pair.input)
 			log.Error(spew.Sdump(items))
@@ -249,8 +250,8 @@ func TestTranslatableTextExtraction(t *testing.T) {
 		var r string
 
 		for _, item := range items {
-			if (item.typ == itemText || item.typ == itemNumber) && shouldTranslateText(item.val) {
-				r += item.val
+			if (item.Typ == ItemText || item.Typ == ItemNumber) && text.ShouldTranslate(item.Val) {
+				r += item.Val
 			}
 		}
 
@@ -301,7 +302,7 @@ func TestNumberExtraction(t *testing.T) {
 	}
 
 	for _, pair := range tests {
-		items, err := parseText(pair.input)
+		items, err := ParseText(pair.input)
 
 		if err != nil {
 			log.Errorf("%s\ntext: %q", err, pair.input)
@@ -313,8 +314,8 @@ func TestNumberExtraction(t *testing.T) {
 		var r string
 
 		for _, item := range items {
-			if item.typ == itemNumber {
-				r += item.val
+			if item.Typ == ItemNumber {
+				r += item.Val
 			}
 		}
 

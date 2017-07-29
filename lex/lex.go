@@ -1,4 +1,4 @@
-package main
+package lex
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func (l *lexer) next() rune {
 	return r
 }
 
-func (l *lexer) nextItem() item {
+func (l *lexer) nextItem() Item {
 	item := <-l.items
 
 	l.lastPos = item.pos
@@ -79,9 +79,9 @@ func (l *lexer) peek(locs int) rune {
 	return r
 }
 
-// emit passes an item back to the client.
+// emit passes an Item back to the client.
 func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.start, l.input[l.start:l.pos]}
+	l.items <- Item{l.start, t, l.input[l.start:l.pos]}
 
 	l.start = l.pos
 }
@@ -123,7 +123,7 @@ func (l *lexer) acceptRun(valid string) {
 // errorf returns an error token and terminates the scan by passing
 // back a nil pointer that will be the next state, terminating l.nextItem.
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...)}
+	l.items <- Item{l.start, ItemError, fmt.Sprintf(format, args...)}
 
 	return nil
 }
@@ -132,7 +132,7 @@ func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 func lex(input string) *lexer {
 	l := &lexer{
 		input: input,
-		items: make(chan item),
+		items: make(chan Item),
 	}
 
 	go l.run()
@@ -161,40 +161,40 @@ Loop:
 		case r == eof:
 			break Loop
 		case r == '%' && l.peek(1) == 's':
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 
 			l.next()
 
 			if l.accept("s") {
-				l.emit(itemRawString)
+				l.emit(ItemRawString)
 			}
 		case (r == 'i' && strings.HasPrefix(l.input[l.pos:], "f(")) ||
 			(r == 'e' && strings.HasPrefix(l.input[l.pos:], "n(")):
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 
 			return lexScript
 		case r == '\\' || r == '@':
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 
 			return lexScript
 		case r == '#' && l.peek(1) == '{':
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 			return lexRubyBlock
 		case strings.ContainsRune(numbers, r):
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 			return lexNumber
 		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 			l.next()
-			l.emit(itemRawString)
+			l.emit(ItemRawString)
 
 			return lexText
 		case r == '-' && l.peek(1) == '-':
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 			l.acceptRun("-")
-			l.emit(itemRawString)
+			l.emit(ItemRawString)
 		case strings.ContainsRune(ignoredCharacters, r):
-			l.emitBefore(itemText)
+			l.emitBefore(ItemText)
 
 			if !strings.Contains(l.input[l.pos:], "if(") && !strings.Contains(l.input[l.pos:], "en(") {
 				l.acceptRun(ignoredCharacters + " ")
@@ -202,7 +202,7 @@ Loop:
 				l.acceptRun(ignoredCharacters)
 			}
 
-			l.emit(itemRawString)
+			l.emit(ItemRawString)
 
 			return lexText
 		}
@@ -210,12 +210,12 @@ Loop:
 	}
 
 	if l.pos > l.start {
-		l.emit(itemText)
+		l.emit(ItemText)
 
 		l.ignore()
 	}
 
-	l.emit(itemEOF)
+	l.emit(ItemEOF)
 
 	return nil
 
@@ -231,18 +231,18 @@ Loop:
 			log.Warn("Script not terminated properly %q", l.input[l.start:])
 			break Loop
 		case '(':
-			l.emitBefore(itemScript)
+			l.emitBefore(ItemScript)
 
 			l.next()
 
-			l.emit(itemLeftParen)
+			l.emit(ItemLeftParen)
 
 			l.parenDepth++
 
 			return lexInsideAction
 		case '[':
 			l.backup(1)
-			l.emit(itemScript)
+			l.emit(ItemScript)
 
 			return lexLeftDelim
 		case '\\':
@@ -263,7 +263,7 @@ Loop:
 		}
 	}
 
-	l.emit(itemScript)
+	l.emit(ItemScript)
 
 	return lexText
 }
@@ -273,7 +273,7 @@ func lexLeftDelim(l *lexer) stateFn {
 
 	log.Debug("leftDelim: ", string(l.mark))
 
-	l.emit(itemLeftDelim)
+	l.emit(ItemLeftDelim)
 
 	return lexInsideAction
 }
@@ -283,7 +283,7 @@ func lexRightDelim(l *lexer) stateFn {
 
 	log.Debug("rightDelim: ", string(l.mark))
 
-	l.emit(itemRightDelim)
+	l.emit(ItemRightDelim)
 
 	log.Debug("Paren depth: ", l.parenDepth)
 
@@ -302,19 +302,19 @@ func lexInsideAction(l *lexer) stateFn {
 	case r == eof:
 		return l.errorf("unclosed action")
 	case r == '(':
-		l.emitBefore(itemParameter)
+		l.emitBefore(ItemParameter)
 
 		l.next()
 
-		l.emit(itemLeftParen)
+		l.emit(ItemLeftParen)
 
 		l.parenDepth++
 	case r == ')':
-		l.emitBefore(itemParameter)
+		l.emitBefore(ItemParameter)
 
 		l.next()
 
-		l.emit(itemRightParen)
+		l.emit(ItemRightParen)
 
 		l.parenDepth--
 
@@ -326,17 +326,17 @@ func lexInsideAction(l *lexer) stateFn {
 			return lexText
 		}
 	case r == '[':
-		l.emitBefore(itemParameter)
+		l.emitBefore(ItemParameter)
 
 		return lexLeftDelim
 	case r == ']':
-		l.emitBefore(itemParameter)
+		l.emitBefore(ItemParameter)
 
 		return lexRightDelim
 	case r == '%' && l.accept("s"):
-		l.emit(itemParameter)
+		l.emit(ItemParameter)
 	case r == '"':
-		l.emit(itemParameter)
+		l.emit(ItemParameter)
 
 		return lexText
 	}
@@ -372,7 +372,7 @@ Loop:
 		}
 	}
 
-	l.emit(itemRubyBlock)
+	l.emit(ItemRubyBlock)
 
 	return lexText
 }
@@ -395,7 +395,7 @@ Loop:
 		}
 	}
 
-	l.emit(itemNumber)
+	l.emit(ItemNumber)
 
 	return lexText
 }

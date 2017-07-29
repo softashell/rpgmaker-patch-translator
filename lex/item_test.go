@@ -1,4 +1,4 @@
-package main
+package lex
 
 import (
 	"testing"
@@ -49,7 +49,7 @@ func TestItemAssembly(t *testing.T) {
 
 	for _, pair := range tests {
 		//pair.input = unescapeText(pair.input)
-		items, err := parseText(pair.input)
+		items, err := ParseText(pair.input)
 		if err != nil {
 			log.Errorf("%s\ntext: %q", err, pair.input)
 			log.Error(spew.Sdump(items))
