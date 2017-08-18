@@ -122,11 +122,11 @@ func TranslateItems(items []Item) (string, error) {
 				return "", errors.Wrapf(err, "failed to translate [%s] %q", items[i].Typ, items[i].Val)
 			}
 
-			if strings.HasPrefix(items[i].Val, " ") && !strings.HasPrefix(translation, " ") {
+			if text.StartsWithWhitespace(items[i].Val) && !text.StartsWithWhitespace(translation) {
 				translation = " " + translation
 			}
 
-			if strings.HasSuffix(items[i].Val, " ") && !strings.HasSuffix(translation, " ") {
+			if text.EndsWithWhitespace(items[i].Val) && !text.EndsWithWhitespace(translation) {
 				translation += " "
 			}
 
