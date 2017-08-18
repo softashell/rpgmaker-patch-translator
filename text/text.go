@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	moonRegex         = regexp.MustCompile(`(\p{Hiragana}|\p{Katakana}|\p{Han})`)
 	ignoredExtensions = []string{
 		".png",
 		".jpg",
@@ -52,9 +51,15 @@ func ShouldTranslate(text string) bool {
 }
 
 func isJapanese(text string) bool {
-	matches := moonRegex.FindAllString(text, 1)
+	for _, r := range text {
+		if unicode.Is(unicode.Hiragana, r) ||
+			unicode.Is(unicode.Katakana, r) ||
+			unicode.Is(unicode.Han, r) {
+			return true
+		}
+	}
 
-	return len(matches) >= 1
+	return false
 }
 
 func ReplaceRegex(text string, expr string, repl string) string {
