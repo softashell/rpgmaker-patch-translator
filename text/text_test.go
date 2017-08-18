@@ -120,7 +120,7 @@ func TestStartsWithWhitespace(t *testing.T) {
 			true,
 		},
 		{
-			"single space (\u3000)",
+			"single space (u3000)",
 			args{
 				"　test",
 			},
@@ -167,7 +167,7 @@ func TestEndsWithWhitespace(t *testing.T) {
 			true,
 		},
 		{
-			"single space (\u3000)",
+			"single space (u3000)",
 			args{
 				"test　",
 			},
