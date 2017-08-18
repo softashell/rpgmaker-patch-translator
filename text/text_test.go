@@ -88,3 +88,97 @@ func TestPatchEscape(t *testing.T) {
 		}
 	}
 }
+
+func TestStartsWithWhitespace(t *testing.T) {
+	type args struct {
+		text string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"empty string",
+			args{
+				"",
+			},
+			false,
+		},
+		{
+			"no space",
+			args{
+				"test",
+			},
+			false,
+		},
+		{
+			"single space",
+			args{
+				" test",
+			},
+			true,
+		},
+		{
+			"single space (\u3000)",
+			args{
+				"　test",
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StartsWithWhitespace(tt.args.text); got != tt.want {
+				t.Errorf("StartsWithWhitespace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestEndsWithWhitespace(t *testing.T) {
+	type args struct {
+		text string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"empty string",
+			args{
+				"",
+			},
+			false,
+		},
+		{
+			"no space",
+			args{
+				"test",
+			},
+			false,
+		},
+		{
+			"single space",
+			args{
+				"test ",
+			},
+			true,
+		},
+		{
+			"single space (\u3000)",
+			args{
+				"test　",
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := EndsWithWhitespace(tt.args.text); got != tt.want {
+				t.Errorf("EndsWithWhitespace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

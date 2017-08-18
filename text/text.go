@@ -3,6 +3,8 @@ package text
 import (
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"golang.org/x/text/width"
 )
@@ -80,7 +82,9 @@ func Escape(text string) string {
 }
 
 func StartsWithWhitespace(text string) bool {
-	if strings.HasPrefix(text, " ") || strings.HasPrefix(text, "　") {
+	r, _ := utf8.DecodeRuneInString(text)
+
+	if unicode.IsSpace(r) {
 		return true
 	}
 
@@ -88,7 +92,9 @@ func StartsWithWhitespace(text string) bool {
 }
 
 func EndsWithWhitespace(text string) bool {
-	if strings.HasSuffix(text, " ") || strings.HasSuffix(text, "　") {
+	r, _ := utf8.DecodeLastRuneInString(text)
+
+	if unicode.IsSpace(r) {
 		return true
 	}
 
