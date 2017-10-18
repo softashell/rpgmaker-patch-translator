@@ -180,9 +180,12 @@ Loop:
 		case r == '#' && l.peek(1) == '{':
 			l.emitBefore(ItemText)
 			return lexRubyBlock
-		case strings.ContainsRune(numbers, r):
-			l.emitBefore(ItemText)
-			return lexNumber
+			/*
+				TODO: Needs to be optional and avoid breaking more context more than necessary to avoid translating almost the same lines
+					case strings.ContainsRune(numbers, r):
+						l.emitBefore(ItemText)
+						return lexNumber
+			*/
 		case strings.ContainsRune(rawCharacters, r) || unicode.IsSymbol(r):
 			l.emitBefore(ItemText)
 			l.next()
@@ -193,18 +196,21 @@ Loop:
 			l.emitBefore(ItemText)
 			l.acceptRun("-")
 			l.emit(ItemRawString)
-		case strings.ContainsRune(ignoredCharacters, r):
-			l.emitBefore(ItemText)
+			/*
+				TODO: Make this optional instead of using it for everything, it's generally only useful for troops and items
+					case strings.ContainsRune(ignoredCharacters, r):
+						l.emitBefore(ItemText)
 
-			if !strings.Contains(l.input[l.pos:], "if(") && !strings.Contains(l.input[l.pos:], "en(") {
-				l.acceptRun(ignoredCharacters + " ")
-			} else {
-				l.acceptRun(ignoredCharacters)
-			}
+						if !strings.Contains(l.input[l.pos:], "if(") && !strings.Contains(l.input[l.pos:], "en(") {
+							l.acceptRun(ignoredCharacters + " ")
+						} else {
+							l.acceptRun(ignoredCharacters)
+						}
 
-			l.emit(ItemRawString)
+						l.emit(ItemRawString)
 
-			return lexText
+						return lexText
+			*/
 		}
 
 	}
