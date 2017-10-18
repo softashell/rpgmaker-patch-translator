@@ -105,3 +105,18 @@ func EndsWithWhitespace(text string) bool {
 
 	return false
 }
+
+func ExtractLeadingWhitespace(s string) string {
+	var ws string
+
+	for _, r := range s {
+		if unicode.IsSpace(r) {
+			ws += string(r)
+			continue
+		}
+
+		break
+	}
+
+	return ws
+}

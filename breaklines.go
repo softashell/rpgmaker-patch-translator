@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"gitgud.io/softashell/rpgmaker-patch-translator/lex"
+	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
@@ -45,6 +46,8 @@ func breakLine(input string) string {
 	log.Debug(spew.Sdump(items))
 
 	var out, justText, line string
+
+	leadingWhitespace := text.ExtractLeadingWhitespace(input)
 
 	for _, item := range items {
 		switch item.Typ {
@@ -88,7 +91,7 @@ func breakLine(input string) string {
 
 				log.Debugf("Word %q was too long to fit! Added a new line before it", words[i])
 				line = strings.TrimRight(line, " ")
-				line += "\n"
+				line += "\n" + leadingWhitespace
 
 				out += line
 

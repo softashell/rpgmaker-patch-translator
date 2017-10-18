@@ -182,3 +182,57 @@ func TestEndsWithWhitespace(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractLeadingWhitespace(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			"empty string",
+			args{
+				"",
+			},
+			"",
+		},
+		{
+			"no space",
+			args{
+				"test",
+			},
+			"",
+		},
+		{
+			"single space",
+			args{
+				" test",
+			},
+			" ",
+		},
+		{
+			"single space (u3000)",
+			args{
+				"　test",
+			},
+			"　",
+		},
+		{
+			"mixed whitespace",
+			args{
+				" 　test",
+			},
+			" 　",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ExtractLeadingWhitespace(tt.args.s); got != tt.want {
+				t.Errorf("ExtractLeadingWhitespace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

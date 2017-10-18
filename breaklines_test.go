@@ -61,6 +61,22 @@ see the event by recollection\>`,
 			`During 5 turns, the user is given flames・ice・
 Give the attribute of lightning`,
 		},
+		{
+			`「For example『Element of fire』When receiving protection of,
+　Attack of fire attribute will cause additional attribute attack。
+　and,『Element of regeneration』If you receive protection from,
+　It will be natural and physical strength will recover during battle」
+`,
+			`「For example『Element of fire』When
+receiving protection of,
+　Attack of fire attribute will cause
+　additional attribute attack。
+　and,『Element of regeneration』If you
+　receive protection from,
+　It will be natural and physical strength
+　will recover during battle」
+`,
+		},
 	}
 
 	lineLength = 42
