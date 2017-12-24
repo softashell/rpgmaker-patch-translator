@@ -32,7 +32,7 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	bar := p.AddBar(int64(fileCount),
 		mpb.PrependDecorators(
 			decor.StaticName("Overall progress", 25, decor.DwidthSync|decor.DextraSpace),
-			decor.Counters("%4s/%4s", 0, 10, decor.DwidthSync|decor.DextraSpace),
+			decor.Counters("%d / %d", 0, 10, decor.DwidthSync|decor.DextraSpace),
 		))
 
 	lock := sync.Mutex{}
