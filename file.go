@@ -232,10 +232,10 @@ func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
 
 	jobs, results := createBlockWorkers(blockCount)
 
-	bar := p.AddBar(int64(blockCount),
+	bar := p.AddBar(int64(blockCount), mpb.BarRemoveOnComplete(),
 		mpb.PrependDecorators(
 			decor.StaticName(filepath.Base(patch.path), 25, decor.DwidthSync|decor.DextraSpace),
-			decor.Counters("%d / %d", 0, 10, decor.DwidthSync|decor.DextraSpace),
+			decor.CountersNoUnit("%d / %d", 0, decor.DwidthSync|decor.DextraSpace),
 		))
 
 	// Add blocks in background to job queue
@@ -250,10 +250,8 @@ func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
 	// Start reading results, will block if there are none
 	for j := range results {
 		patch.blocks[j.id] = j.block
-		bar.Incr(1)
+		bar.Increment()
 	}
-
-	p.RemoveBar(bar)
 
 	return patch, nil
 }

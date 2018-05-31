@@ -32,7 +32,7 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	bar := p.AddBar(int64(fileCount),
 		mpb.PrependDecorators(
 			decor.StaticName("Overall progress", 25, decor.DwidthSync|decor.DextraSpace),
-			decor.Counters("%d / %d", 0, 10, decor.DwidthSync|decor.DextraSpace),
+			decor.CountersNoUnit("%d / %d", 0, decor.DwidthSync|decor.DextraSpace),
 		))
 
 	lock := sync.Mutex{}
@@ -42,7 +42,7 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 		go func(jobs <-chan string, results chan<- error) {
 			for j := range jobs {
 				results <- processFile(p, j)
-				bar.Incr(1)
+				bar.Increment()
 			}
 
 			lock.Lock()
@@ -51,7 +51,7 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 			workerCount--
 			if workerCount < 1 {
 				close(results)
-				p.Stop()
+				p.Wait()
 			}
 		}(jobs, results)
 	}
