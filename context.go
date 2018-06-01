@@ -52,7 +52,7 @@ func shouldTranslateContextVX(c, text string) bool {
 	}
 
 	// Causes problems in custom scripts if translation overflows
-	if strings.HasPrefix(c, ": System/currency_unit/ ") {
+	if strings.HasPrefix(c, ": System/currency_unit/") {
 		return false
 	}
 

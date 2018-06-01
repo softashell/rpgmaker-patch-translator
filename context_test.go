@@ -73,7 +73,7 @@ func Test_shouldTranslateContextVX(t *testing.T) {
 		{
 			"Currency",
 			args{
-				`: System/currency_unit/ `,
+				`: System/currency_unit/`,
 				`万円`,
 			},
 			false,
