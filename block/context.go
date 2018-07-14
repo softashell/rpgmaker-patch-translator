@@ -1,15 +1,17 @@
-package main
+package block
 
 import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+
+	"gitgud.io/softashell/rpgmaker-patch-translator/engine"
 )
 
-func getTranslatableContexts(block translationBlock, text string) ([]string, []string) {
+func getTranslatableContexts(block TranslationBlock, text string) ([]string, []string) {
 	var good, bad []string
 
-	for _, c := range block.contexts {
+	for _, c := range block.Contexts {
 		if shouldTranslateContext(c, text) {
 			good = append(good, c)
 		} else {
@@ -98,11 +100,10 @@ func shouldTranslateContextWolf(c, text string) bool {
 }
 
 func shouldTranslateContext(c, text string) bool {
-	// TODO: Add switch to disable name translation to avoid breaking some games
-
-	if engine == engineRPGMVX {
+	switch engine.Get() {
+	case engine.RPGMVX:
 		return shouldTranslateContextVX(c, text)
-	} else if engine == engineWolf {
+	case engine.Wolf:
 		return shouldTranslateContextWolf(c, text)
 	}
 
@@ -111,13 +112,13 @@ func shouldTranslateContext(c, text string) bool {
 	return false
 }
 
-func shouldBreakLines(contexts []string) bool {
+func ShouldBreakLines(contexts []string) bool {
 	for _, c := range contexts {
-		if engine == engineRPGMVX {
+		if engine.Is(engine.RPGMVX) {
 			if strings.Contains(c, "GameINI/Title") || strings.Contains(c, "System/game_title/") {
 				return false
 			}
-		} else if engine == engineWolf {
+		} else if engine.Is(engine.Wolf) {
 			if strings.HasPrefix(c, " GAMEDAT:") {
 				return false
 			}

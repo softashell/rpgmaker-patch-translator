@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/block"
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 
 	log "github.com/Sirupsen/logrus"
@@ -20,7 +21,7 @@ import (
 type patchFile struct {
 	path    string
 	version string
-	blocks  []patchBlock
+	blocks  []block.PatchBlock
 }
 
 func writePatchFile(patch patchFile) error {
@@ -38,18 +39,18 @@ func writePatchFile(patch patchFile) error {
 	_, err = w.WriteString(fmt.Sprintf("> %s\n", patch.version))
 	check(err)
 
-	for _, block := range patch.blocks {
+	for _, b := range patch.blocks {
 		_, err = w.WriteString("> BEGIN STRING\n")
 		check(err)
 
-		_, err = w.WriteString(text.Escape(block.original))
+		_, err = w.WriteString(text.Escape(b.Original))
 		check(err)
 
-		for _, t := range block.translations {
-			for _, context := range t.contexts {
+		for _, t := range b.Translations {
+			for _, context := range t.Contexts {
 				context = fmt.Sprintf("> CONTEXT%s", context)
 
-				if !t.translated {
+				if !t.Translated {
 					context += " < UNTRANSLATED\n"
 				} else {
 					context += "\n"
@@ -60,10 +61,10 @@ func writePatchFile(patch patchFile) error {
 
 			var trans string
 
-			if t.translated {
-				text := text.Escape(t.text)
+			if t.Translated {
+				text := text.Escape(t.Text)
 
-				if t.touched && shouldBreakLines(t.contexts) {
+				if t.Touched && block.ShouldBreakLines(t.Contexts) {
 					trans = breakLines(text)
 					if !strings.HasSuffix(trans, "\n") {
 						trans += "\n"
@@ -112,8 +113,8 @@ func parsePatchFile(file string) (patchFile, error) {
 	var trans string
 	var contexts []string
 
-	var block patchBlock
-	var translations []translationBlock
+	var currentBlock block.PatchBlock
+	var translations []block.TranslationBlock
 
 	for s.Scan() {
 		l := s.Text()
@@ -137,10 +138,10 @@ func parsePatchFile(file string) (patchFile, error) {
 						translated = true
 					}
 
-					translations = append(translations, translationBlock{
-						text:       trans,
-						contexts:   contexts,
-						translated: translated,
+					translations = append(translations, block.TranslationBlock{
+						Text:       trans,
+						Contexts:   contexts,
+						Translated: translated,
 					})
 
 					trans = ""
@@ -173,25 +174,25 @@ func parsePatchFile(file string) (patchFile, error) {
 						translated = true
 					}
 
-					translations = append(translations, translationBlock{
-						text:       text.Unescape(trans),
-						contexts:   contexts,
-						translated: translated,
+					translations = append(translations, block.TranslationBlock{
+						Text:       text.Unescape(trans),
+						Contexts:   contexts,
+						Translated: translated,
 					})
 				} else if len(contexts) > 0 {
-					translations = append(translations, translationBlock{
-						text:       text.Unescape(trans),
-						contexts:   contexts,
-						translated: false,
+					translations = append(translations, block.TranslationBlock{
+						Text:       text.Unescape(trans),
+						Contexts:   contexts,
+						Translated: false,
 					})
 				} else if len(translations) == 0 {
 					log.Errorf("No contexts found for block with original text:\n%q", orig)
 				}
 
-				block.original = text.Unescape(orig)
-				block.translations = translations
+				currentBlock.Original = text.Unescape(orig)
+				currentBlock.Translations = translations
 
-				patch.blocks = append(patch.blocks, block)
+				patch.blocks = append(patch.blocks, currentBlock)
 
 				orig = ""
 				trans = ""

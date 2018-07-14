@@ -4,13 +4,14 @@ import (
 	"sync"
 	"time"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/block"
 	"github.com/vbauerster/mpb"
 	"github.com/vbauerster/mpb/decor"
 )
 
 type blockWork struct {
 	id    int // Only needed to preserve order in patch file
-	block patchBlock
+	block block.PatchBlock
 }
 
 func createFileWorkers(fileCount int) (chan string, chan error) {
@@ -76,7 +77,7 @@ func createBlockWorkers(fileCount int) (chan blockWork, chan blockWork) {
 	for w := 1; w <= workerCount; w++ {
 		go func(jobs <-chan blockWork, results chan<- blockWork) {
 			for j := range jobs {
-				j.block = parseBlock(j.block)
+				j.block = block.ParseBlock(j.block)
 				results <- j
 			}
 

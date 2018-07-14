@@ -9,20 +9,14 @@ import (
 	"runtime"
 	"time"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/block"
+	"gitgud.io/softashell/rpgmaker-patch-translator/engine"
+	"gitgud.io/softashell/rpgmaker-patch-translator/translate"
+
 	log "github.com/Sirupsen/logrus"
 )
 
-type engineType int
-
-const (
-	engineNone engineType = iota
-	engineRPGMVX
-	engineWolf
-)
-
 var (
-	engine = engineNone
-
 	// Flags
 	lineLength    int
 	lineTolerance int
@@ -51,7 +45,7 @@ func main() {
 	}
 
 	if lineLength == -1 {
-		if engine == engineWolf {
+		if engine.Is(engine.Wolf) {
 			lineLength = 54
 		} else {
 			lineLength = 42
@@ -65,6 +59,9 @@ func main() {
 	fileCount := len(fileList)
 
 	fmt.Printf("Found %d files to translate\n", fileCount)
+
+	translate.Init()
+	block.Init()
 
 	jobs, results := createFileWorkers(fileCount)
 
@@ -101,13 +98,13 @@ func checkPatchVersion(dir string) error {
 		if text == "> RPGMAKER TRANS PATCH V3" {
 			fmt.Println("Detected RPG Maker VX Ace Patch")
 
-			engine = engineRPGMVX
+			engine.Set(engine.RPGMVX)
 
 			return nil
 		} else if text == "> WOLF TRANS PATCH FILE VERSION 1.0" {
 			fmt.Println("Detected WOLF RPG Patch")
 
-			engine = engineWolf
+			engine.Set(engine.Wolf)
 
 			return nil
 		}
