@@ -3,11 +3,17 @@ package block
 import (
 	"strings"
 
+	"gitgud.io/softashell/rpgmaker-patch-translator/engine"
 	"gitgud.io/softashell/rpgmaker-patch-translator/statictl"
 )
 
 func GetContextTypes(contexts []string) map[statictl.TranslationType][]string {
 	types := make(map[statictl.TranslationType][]string)
+
+	if engine.Is(engine.Wolf) {
+		types[statictl.TransGeneric] = contexts
+		return types
+	}
 
 	for _, c := range contexts {
 		tlType := GetContextType(c)
