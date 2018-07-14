@@ -235,8 +235,8 @@ func translatePatch(p *mpb.Progress, patch patchFile) (patchFile, error) {
 
 	bar := p.AddBar(int64(blockCount), mpb.BarRemoveOnComplete(),
 		mpb.PrependDecorators(
-			decor.StaticName(filepath.Base(patch.path), 25, decor.DwidthSync|decor.DextraSpace),
-			decor.CountersNoUnit("%d / %d", 0, decor.DwidthSync|decor.DextraSpace),
+			decor.Name(filepath.Base(patch.path), decor.WC{W: 25, C: decor.DSyncSpace}),
+			decor.CountersNoUnit("%d / %d", decor.WC{C: decor.DSyncSpace}),
 		))
 
 	// Add blocks in background to job queue
