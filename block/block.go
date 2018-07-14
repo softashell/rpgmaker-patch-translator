@@ -6,7 +6,6 @@ import (
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
 )
 
 type PatchBlock struct {
@@ -23,9 +22,8 @@ type TranslationBlock struct {
 
 var stl *statictl.Db
 
+// Set the nasty global variables
 func Init() {
-	// Set the nasty global variables
-
 	if stl == nil {
 		stl = statictl.New()
 	}
@@ -36,6 +34,55 @@ func ParseBlock(block PatchBlock) PatchBlock {
 		return block
 	}
 
+	block = ParseBlockLocalTL(block)
+	block = ParseBlockRemoteTL(block)
+
+	return block
+}
+
+func ParseBlockLocalTL(block PatchBlock) PatchBlock {
+	var untranslated []string
+
+	for i, t := range block.Translations {
+		if t.Translated {
+			continue // Block is already translated
+		}
+
+		// Attempt to get static translation for block
+		blocks, untranslatedContexts, err := TranslateBlockStatic(t, block.Original)
+		if err != nil || len(blocks) < 1 {
+			continue
+		}
+
+		untranslated = append(untranslated, untranslatedContexts...)
+
+		// Replace current
+		if len(blocks) == 1 {
+			block.Translations[i] = blocks[0]
+		} else {
+			// Delete current block
+			block.Translations = append(block.Translations[:i], block.Translations[i+1:]...)
+
+			// Append new blocks at end
+			block.Translations = append(block.Translations, blocks...)
+		}
+	}
+
+	// Leftovers
+	if len(untranslated) > 0 {
+		block.Translations = append(block.Translations, TranslationBlock{
+			Text:       "",
+			Contexts:   untranslated,
+			Translated: false,
+		})
+
+		log.Infof("Mixed block in static\n %s", spew.Sdump(block))
+	}
+
+	return block
+}
+
+func ParseBlockRemoteTL(block PatchBlock) PatchBlock {
 	var err error
 	var items []lex.Item
 	var untranslated []string
@@ -46,39 +93,32 @@ func ParseBlock(block PatchBlock) PatchBlock {
 			continue // Block is already translated
 		}
 
-		// Attempt to get static translation for block
-		t, err = TranslateBlockStatic(t, block.Original)
-
 		// Fallback to lexing and translating chunks with comfy-translator
-		if err != nil {
-			good, bad := getTranslatableContexts(t, block.Original)
-			untranslated = append(untranslated, bad...)
+		good, bad := getTranslatableContexts(t, block.Original)
+		untranslated = append(untranslated, bad...)
 
-			if len(good) < 1 {
-				continue
-			}
-
-			if !parsed {
-				items, err = lex.ParseText(block.Original)
-				if err != nil {
-					//logBlockError(err, block, items)
-
-					return block
-				}
-
-				parsed = true
-			}
-
-			t.Text, err = lex.TranslateItems(items)
-			if err != nil {
-				// This should only fail if translation service is down
-				log.Fatalf("failed to translate items: %v", err)
-			}
-
-			t.Contexts = good
-			t.Translated = true
-			t.Touched = true
+		if len(good) < 1 {
+			continue
 		}
+
+		if !parsed {
+			items, err = lex.ParseText(block.Original)
+			if err != nil {
+				return block
+			}
+
+			parsed = true
+		}
+
+		t.Text, err = lex.TranslateItems(items)
+		if err != nil {
+			// This should only fail if translation service is down
+			log.Fatalf("failed to translate items: %v", err)
+		}
+
+		t.Contexts = good
+		t.Translated = true
+		t.Touched = true
 
 		block.Translations[i] = t
 
@@ -94,25 +134,33 @@ func ParseBlock(block PatchBlock) PatchBlock {
 			Translated: false,
 		})
 
-		log.Infof("Mixed block\n %s", spew.Sdump(block))
+		log.Infof("Mixed block in comfy\n %s", spew.Sdump(block))
 	}
 
 	return block
 }
 
-func TranslateBlockStatic(b TranslationBlock, originalText string) (TranslationBlock, error) {
-	// TODO: Match every context against translation and create new blocks if they differ
+func TranslateBlockStatic(b TranslationBlock, originalText string) ([]TranslationBlock, []string, error) {
+	tlTypes := GetContextTypes(b.Contexts)
+	blocks := []TranslationBlock{}
+	untranslated := []string{}
 
-	tlType := GetTranslationType(b.Contexts)
+	for t, c := range tlTypes {
+		text, err := stl.GetTranslation(originalText, t)
+		if err != nil {
+			untranslated = append(untranslated, c...)
+			continue
+		}
 
-	text, err := stl.GetTranslation(originalText, tlType)
-	if err != nil {
-		return b, errors.Wrapf(err, "can't get translation for %q %q", originalText, tlType)
+		block := TranslationBlock{
+			Text:       text,
+			Contexts:   c,
+			Touched:    true,
+			Translated: true,
+		}
+
+		blocks = append(blocks, block)
 	}
 
-	b.Text = text
-	b.Translated = true
-	b.Touched = true
-
-	return b, nil
+	return blocks, nil, nil
 }

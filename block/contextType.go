@@ -6,48 +6,54 @@ import (
 	"gitgud.io/softashell/rpgmaker-patch-translator/statictl"
 )
 
-func GetTranslationType(contexts []string) statictl.TranslationType {
-	// TODO: Handle multiple contexts instead of picking first one that matches
+func GetContextTypes(contexts []string) map[statictl.TranslationType][]string {
+	types := make(map[statictl.TranslationType][]string)
 
 	for _, c := range contexts {
+		tlType := GetContextType(c)
+		types[tlType] = append(types[tlType], c)
+	}
 
-		if IsActor(c) || IsArmor(c) || IsClass(c) || IsEnemy(c) || IsItem(c) || IsSkill(c) || IsTroop(c) || IsWeapon(c) {
-			if IsName(c) {
-				return statictl.TransName
-			}
+	return types
+}
 
-			if IsDescription(c) {
-				return statictl.TransDescription
-			}
+func GetContextType(c string) statictl.TranslationType {
+	if IsActor(c) || IsArmor(c) || IsClass(c) || IsEnemy(c) || IsItem(c) || IsSkill(c) || IsTroop(c) || IsWeapon(c) {
+		if IsName(c) {
+			return statictl.TransName
 		}
 
-		if IsDialogue(c) {
-			return statictl.TransDialogue
+		if IsDescription(c) {
+			return statictl.TransDescription
+		}
+	}
+
+	if IsDialogue(c) {
+		return statictl.TransDialogue
+	}
+
+	if IsChoice(c) {
+		return statictl.TransChoice
+	}
+
+	if IsMessage(c) {
+		return statictl.TransMessage
+	}
+
+	if IsInlineScript(c) {
+		return statictl.TransInlineScript
+	}
+
+	if IsScript(c) {
+		if IsVocab(c) {
+			return statictl.TransVocab
 		}
 
-		if IsChoice(c) {
-			return statictl.TransChoice
-		}
+		return statictl.TransScript
+	}
 
-		if IsMessage(c) {
-			return statictl.TransMessage
-		}
-
-		if IsInlineScript(c) {
-			return statictl.TransInlineScript
-		}
-
-		if IsScript(c) {
-			if IsVocab(c) {
-				return statictl.TransVocab
-			}
-
-			return statictl.TransScript
-		}
-
-		if IsSystem(c) {
-			return statictl.TransSystem
-		}
+	if IsSystem(c) {
+		return statictl.TransSystem
 	}
 
 	return statictl.TransGeneric
