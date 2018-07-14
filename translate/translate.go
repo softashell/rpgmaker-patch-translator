@@ -1,6 +1,7 @@
 package translate
 
 import (
+	"net/http"
 	"strings"
 	"unicode"
 
@@ -23,6 +24,12 @@ type translateResponse struct {
 	TranslationText string `json:"translationText"`
 }
 
+var httpTransport *http.Transport
+
+func Init() {
+	httpTransport = &http.Transport{}
+}
+
 func String(str string) (string, error) {
 	if !text.ShouldTranslate(str) {
 		return str, nil
@@ -40,7 +47,10 @@ func String(str string) (string, error) {
 		Text: str,
 	}
 
-	_, _, errs := gorequest.New().Post("http://127.0.0.1:3000/api/translate").
+	gr := gorequest.New()
+	gr.Transport = httpTransport
+
+	_, _, errs := gr.Post("http://127.0.0.1:3000/api/translate").
 		Type("json").SendStruct(&request).EndStruct(&response)
 	for _, err := range errs {
 		return "", errors.Wrap(err, "http request failed")
