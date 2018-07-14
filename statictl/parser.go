@@ -108,7 +108,7 @@ func (t *Db) loadDatabaseStatic(fileName string) (translationDB, error) {
 func (t *Db) loadDatabaseDynamic(fileName string) ([]translationDBRegex, error) {
 	var dbRe []translationDBRegex
 
-	log.Infof("Parsing database %s", fileName)
+	log.Debugf("Parsing database %s", fileName)
 
 	file, err := ioutil.ReadFile(fileName)
 	if err != nil {
