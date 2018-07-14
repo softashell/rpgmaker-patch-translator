@@ -2,13 +2,14 @@ package translate
 
 import (
 	"net/http"
+	"net/rpc"
+	"runtime"
 	"strings"
 	"unicode"
 
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
+	"github.com/Jeffail/tunny"
 	log "github.com/Sirupsen/logrus"
-	"github.com/parnurzeal/gorequest"
-	"github.com/pkg/errors"
 )
 
 type translateRequest struct {
@@ -25,9 +26,27 @@ type translateResponse struct {
 }
 
 var httpTransport *http.Transport
+var pool *tunny.Pool
 
 func Init() {
 	httpTransport = &http.Transport{}
+
+	workerCount := runtime.NumCPU() * 2
+
+	pool = tunny.New(workerCount, func() tunny.Worker {
+		return newComfyWorker()
+	})
+}
+
+func comfyTranslate(client *rpc.Client, req translateRequest) translateResponse {
+	var reply translateResponse
+
+	err := client.Call("Comfy.Translate", req, &reply)
+	if err != nil {
+		log.Fatal("translation service error:", err)
+	}
+
+	return reply
 }
 
 func String(str string) (string, error) {
@@ -39,22 +58,13 @@ func String(str string) (string, error) {
 		return "", nil
 	}
 
-	var response translateResponse
-
 	request := translateRequest{
 		From: "ja",
 		To:   "en",
 		Text: str,
 	}
 
-	gr := gorequest.New()
-	gr.Transport = httpTransport
-
-	_, _, errs := gr.Post("http://127.0.0.1:3000/api/translate").
-		Type("json").SendStruct(&request).EndStruct(&response)
-	for _, err := range errs {
-		return "", errors.Wrap(err, "http request failed")
-	}
+	response := pool.Process(request).(translateResponse)
 
 	out := response.TranslationText
 
