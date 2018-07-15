@@ -15,9 +15,8 @@ type translationDBRegex struct {
 }
 
 type Db struct {
-	loaded bool // The value of this item.
-	db     translationDBMap
-	dbRe   translationDBRegexMap
+	db   translationDBMap
+	dbRe translationDBRegexMap
 }
 
 func New() *Db {
@@ -30,8 +29,6 @@ func New() *Db {
 	if err != nil {
 		log.Fatal("Failed to load static translations")
 	}
-
-	t.loaded = true
 
 	return t
 }
