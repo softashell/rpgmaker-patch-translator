@@ -71,6 +71,9 @@ func writePatchFile(patch patchFile) error {
 					}
 				} else {
 					trans = text
+					if !strings.HasSuffix(trans, "\n") {
+						trans += "\n"
+					}
 				}
 			} else {
 				trans = "\n"
