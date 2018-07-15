@@ -24,17 +24,22 @@ func TestDb_GetDynamic(t *testing.T) {
 			name: "Benis",
 			fields: fields{
 				dbRe: translationDBRegexMap{
-					TransGeneric: []translationDBRegex{{
-						regex:       regexp.MustCompile(`(b(en))is`),
-						replacement: "$1$1$2",
-					}},
+					TransGeneric: []translationDBRegex{
+						{
+							regex:       regexp.MustCompile(`(b(en))is`),
+							replacement: "$1$1$2",
+						},
+						{
+							regex:       regexp.MustCompile(`(b(ep))is`),
+							replacement: "$1$2",
+						}},
 				},
 			},
 			args: args{
 				str: "benis bepis",
 				typ: TransGeneric,
 			},
-			want:    "benbenen bepis",
+			want:    "benbenen bepep",
 			wantErr: false,
 		},
 		{
