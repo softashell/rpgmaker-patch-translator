@@ -7,17 +7,17 @@ import (
 )
 
 // RunPostTranslation Edits text returned from translation service, ignores static tl
-func (t *Db) RunPostTranslation(str string, typ TranslationType) (string, error) {
+func (t *Db) RunPostTranslation(str string) (string, error) {
 	str = strings.TrimSpace(str) // Might not be a good idea
 
 	var err error
 
-	str, err = t.ApplyPreStatic(str, typ)
+	str, err = t.ApplyPreStatic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}
 
-	str, err = t.ApplyPreDynamic(str, typ)
+	str, err = t.ApplyPreDynamic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}

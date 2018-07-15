@@ -7,17 +7,17 @@ import (
 )
 
 // RunPreTranslation Edits original text, called before anything else
-func (t *Db) RunPreTranslation(str string, typ TranslationType) (string, error) {
+func (t *Db) RunPreTranslation(str string) (string, error) {
 	str = strings.TrimSpace(str)
 
 	var err error
 
-	str, err = t.ApplyPreStatic(str, typ)
+	str, err = t.ApplyPreStatic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}
 
-	str, err = t.ApplyPreDynamic(str, typ)
+	str, err = t.ApplyPreDynamic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}

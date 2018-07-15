@@ -47,25 +47,27 @@ func (t *Db) loadDatabases() error {
 
 		t.db[tlType] = db
 		t.dbRe[tlType] = dbRe
-
-		// Pre translation
-		db, dbRe, err = t.loadDatabase(tlType, fileName, preTranslationDBPath)
-		if err != nil {
-			log.Error(err)
-		}
-
-		t.dbPre[tlType] = db
-		t.dbRePre[tlType] = dbRe
-
-		// Post translation
-		db, dbRe, err = t.loadDatabase(tlType, fileName, postTranslationDBPath)
-		if err != nil {
-			log.Error(err)
-		}
-
-		t.dbPost[tlType] = db
-		t.dbRePost[tlType] = dbRe
 	}
+
+	fileName := databaseFiles[TransGeneric]
+
+	// Pre translation
+	db, dbRe, err := t.loadDatabase(TransGeneric, fileName, preTranslationDBPath)
+	if err != nil {
+		log.Error(err)
+	}
+
+	t.dbPre[TransGeneric] = db
+	t.dbRePre[TransGeneric] = dbRe
+
+	// Post translation
+	db, dbRe, err = t.loadDatabase(TransGeneric, fileName, postTranslationDBPath)
+	if err != nil {
+		log.Error(err)
+	}
+
+	t.dbPost[TransGeneric] = db
+	t.dbRePost[TransGeneric] = dbRe
 
 	return nil
 }
@@ -104,7 +106,7 @@ func (t *Db) loadDatabase(tlType TranslationType, fileName string, baseDir strin
 func (t *Db) loadDatabaseStatic(fileName string) (translationDB, error) {
 	db := make(translationDB)
 
-	log.Infof("Parsing database %s", fileName)
+	log.Debugf("Parsing database %s", fileName)
 
 	file, err := ioutil.ReadFile(fileName)
 	if err != nil {
