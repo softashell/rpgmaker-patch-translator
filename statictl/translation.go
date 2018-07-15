@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// GetTranslation Replaces source if match is found and stops any further translation.
+// Called after RunPreTranslation
 func (t *Db) GetTranslation(str string, typ TranslationType) (string, error) {
 	// TODO: Maybe only trim right side?
 	str = strings.TrimSpace(str)

@@ -21,30 +21,58 @@ type DatabaseEntryStatic struct {
 type DatabaseEntryDynamic struct {
 	RegexMatch   string
 	RegexReplace string
-
-	/*
-		re := regexp.MustCompile(`((fo)(o))`)
-		s := re.ReplaceAllString("foo", "$1-$1-$2-$3") // foo => foo-foo-fo-o
-	*/
 }
 
-var staticDBPath = filepath.Join("database", "static")
-var dynamicDBPath = filepath.Join("database", "dynamic")
+var (
+	simpleTranslationFolder = "simple"
+	regexTranslationFolder  = "regex"
+
+	// Pre Translation
+	preTranslationDBPath = filepath.Join("database", "translation_pre")
+
+	//Translation
+	translationDBPath = filepath.Join("database", "translation")
+
+	// Post Translation
+	postTranslationDBPath = filepath.Join("database", "translation_post")
+)
 
 func (t *Db) loadDatabases() error {
-	for k, v := range databaseFiles {
-		err := t.loadDatabase(k, v)
+	for tlType, fileName := range databaseFiles {
+		// Full translation
+		db, dbRe, err := t.loadDatabase(tlType, fileName, translationDBPath)
 		if err != nil {
-			continue
+			log.Error(err)
 		}
+
+		t.db[tlType] = db
+		t.dbRe[tlType] = dbRe
+
+		// Pre translation
+		db, dbRe, err = t.loadDatabase(tlType, fileName, preTranslationDBPath)
+		if err != nil {
+			log.Error(err)
+		}
+
+		t.dbPre[tlType] = db
+		t.dbRePre[tlType] = dbRe
+
+		// Post translation
+		db, dbRe, err = t.loadDatabase(tlType, fileName, postTranslationDBPath)
+		if err != nil {
+			log.Error(err)
+		}
+
+		t.dbPost[tlType] = db
+		t.dbRePost[tlType] = dbRe
 	}
 
 	return nil
 }
 
-func (t *Db) loadDatabase(tlType TranslationType, fileName string) error {
-	filePathStatic := filepath.Join(staticDBPath, fileName)
-	filePathDynamic := filepath.Join(dynamicDBPath, fileName)
+func (t *Db) loadDatabase(tlType TranslationType, fileName string, baseDir string) (translationDB, []translationDBRegex, error) {
+	filePathStatic := filepath.Join(baseDir, simpleTranslationFolder, fileName)
+	filePathDynamic := filepath.Join(baseDir, regexTranslationFolder, fileName)
 
 	var db translationDB
 	var dbRe []translationDBRegex
@@ -52,7 +80,7 @@ func (t *Db) loadDatabase(tlType TranslationType, fileName string) error {
 
 	if !fileExists(filePathStatic) {
 		log.Infof("Database %s doesn't exist, creating empty file", filePathStatic)
-		createEmptyDatabase(filePathStatic, DbStatic)
+		createEmptyDatabase(baseDir, filePathStatic, DbStatic)
 	} else {
 		db, err = t.loadDatabaseStatic(filePathStatic)
 		if err != nil {
@@ -62,7 +90,7 @@ func (t *Db) loadDatabase(tlType TranslationType, fileName string) error {
 
 	if !fileExists(filePathDynamic) {
 		log.Infof("Database %s doesn't exist, creating empty file", filePathDynamic)
-		createEmptyDatabase(filePathDynamic, DbDynamic)
+		createEmptyDatabase(baseDir, filePathDynamic, DbDynamic)
 	} else {
 		dbRe, err = t.loadDatabaseDynamic(filePathDynamic)
 		if err != nil {
@@ -70,10 +98,7 @@ func (t *Db) loadDatabase(tlType TranslationType, fileName string) error {
 		}
 	}
 
-	t.db[tlType] = db
-	t.dbRe[tlType] = dbRe
-
-	return nil
+	return db, dbRe, nil
 }
 
 func (t *Db) loadDatabaseStatic(fileName string) (translationDB, error) {
@@ -159,21 +184,21 @@ func fileExists(fileName string) bool {
 	return true
 }
 
-func createEmptyDatabase(filePath string, typ DatabaseType) error {
+func createEmptyDatabase(baseDir, filePath string, typ DatabaseType) error {
 
 	var content interface{}
 	var fileDir string
 
 	switch typ {
 	case DbStatic:
-		fileDir = staticDBPath
+		fileDir = filepath.Join(baseDir, simpleTranslationFolder)
 		content = []DatabaseEntryStatic{{
 			Original:   "",
 			Translated: "",
 		}}
 
 	case DbDynamic:
-		fileDir = dynamicDBPath
+		fileDir = filepath.Join(baseDir, regexTranslationFolder)
 		content = []DatabaseEntryDynamic{{
 			RegexMatch:   "",
 			RegexReplace: "",
