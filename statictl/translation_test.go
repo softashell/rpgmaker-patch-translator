@@ -31,10 +31,10 @@ func TestDb_GetDynamic(t *testing.T) {
 				},
 			},
 			args: args{
-				str: "benis",
+				str: "benis bepis",
 				typ: TransGeneric,
 			},
-			want:    "benbenen",
+			want:    "benbenen bepis",
 			wantErr: false,
 		},
 		{
