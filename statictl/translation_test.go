@@ -60,7 +60,7 @@ func TestDb_GetDynamic(t *testing.T) {
 			tl := &Db{
 				dbRe: tt.fields.dbRe,
 			}
-			got, err := tl.GetDynamic(tt.args.str, tt.args.typ)
+			got, err := tl.getDynamic(tt.args.str, tt.args.typ)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Db.GetDynamic() error = %v, wantErr %v", err, tt.wantErr)
 				return
