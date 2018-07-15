@@ -12,25 +12,25 @@ func (t *Db) GetTranslation(str string, typ TranslationType) (string, error) {
 	str = strings.TrimSpace(str)
 
 	// Full replacement
-	tl, err := t.GetStatic(str, typ)
+	tl, err := t.getStatic(str, typ)
 	if err == nil {
 		return tl, err
 	}
 
 	// Regex search and replace
-	tl, err = t.GetDynamic(str, typ)
+	tl, err = t.getDynamic(str, typ)
 	if err == nil {
 		return tl, err
 	}
 
 	// Fall back to generic
 	if typ != TransGeneric {
-		tl, err = t.GetStatic(str, TransGeneric)
+		tl, err = t.getStatic(str, TransGeneric)
 		if err == nil {
 			return tl, err
 		}
 
-		tl, err = t.GetDynamic(str, TransGeneric)
+		tl, err = t.getDynamic(str, TransGeneric)
 		if err == nil {
 			return tl, err
 		}
@@ -39,7 +39,7 @@ func (t *Db) GetTranslation(str string, typ TranslationType) (string, error) {
 	return "", fmt.Errorf("no translation")
 }
 
-func (t *Db) GetStatic(str string, typ TranslationType) (string, error) {
+func (t *Db) getStatic(str string, typ TranslationType) (string, error) {
 	if tl, ok := t.db[typ][str]; ok {
 		return tl, nil
 	}
@@ -47,7 +47,7 @@ func (t *Db) GetStatic(str string, typ TranslationType) (string, error) {
 	return "", fmt.Errorf("no translation")
 }
 
-func (t *Db) GetDynamic(str string, typ TranslationType) (string, error) {
+func (t *Db) getDynamic(str string, typ TranslationType) (string, error) {
 	var match bool
 
 	for _, r := range t.dbRe[typ] {

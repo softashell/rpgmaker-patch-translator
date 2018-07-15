@@ -12,12 +12,12 @@ func (t *Db) RunPreTranslation(str string) (string, error) {
 
 	var err error
 
-	str, err = t.ApplyPreStatic(str, TransGeneric)
+	str, err = t.applyPreStatic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}
 
-	str, err = t.ApplyPreDynamic(str, TransGeneric)
+	str, err = t.applyPreDynamic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}
@@ -25,7 +25,7 @@ func (t *Db) RunPreTranslation(str string) (string, error) {
 	return str, nil
 }
 
-func (t *Db) ApplyPreStatic(str string, typ TranslationType) (string, error) {
+func (t *Db) applyPreStatic(str string, typ TranslationType) (string, error) {
 	for strFind, strSub := range t.dbPre[typ] {
 		str = strings.Replace(str, strFind, strSub, -1)
 	}
@@ -33,7 +33,7 @@ func (t *Db) ApplyPreStatic(str string, typ TranslationType) (string, error) {
 	return str, nil
 }
 
-func (t *Db) ApplyPreDynamic(str string, typ TranslationType) (string, error) {
+func (t *Db) applyPreDynamic(str string, typ TranslationType) (string, error) {
 	for _, r := range t.dbRePre[typ] {
 		if !r.regex.MatchString(str) {
 			continue

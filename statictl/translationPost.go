@@ -12,12 +12,12 @@ func (t *Db) RunPostTranslation(str string) (string, error) {
 
 	var err error
 
-	str, err = t.ApplyPreStatic(str, TransGeneric)
+	str, err = t.applyPostStatic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}
 
-	str, err = t.ApplyPreDynamic(str, TransGeneric)
+	str, err = t.applyPostDynamic(str, TransGeneric)
 	if err != nil {
 		log.Error(err)
 	}
@@ -25,7 +25,7 @@ func (t *Db) RunPostTranslation(str string) (string, error) {
 	return str, nil
 }
 
-func (t *Db) ApplyPostStatic(str string, typ TranslationType) (string, error) {
+func (t *Db) applyPostStatic(str string, typ TranslationType) (string, error) {
 	for strFind, strSub := range t.dbPost[typ] {
 		str = strings.Replace(str, strFind, strSub, -1)
 	}
@@ -33,7 +33,7 @@ func (t *Db) ApplyPostStatic(str string, typ TranslationType) (string, error) {
 	return str, nil
 }
 
-func (t *Db) ApplyPostDynamic(str string, typ TranslationType) (string, error) {
+func (t *Db) applyPostDynamic(str string, typ TranslationType) (string, error) {
 	for _, r := range t.dbRePost[typ] {
 		if !r.regex.MatchString(str) {
 			continue
