@@ -3,7 +3,6 @@ package translate
 import (
 	"net/http"
 	"net/rpc"
-	"runtime"
 	"strings"
 	"unicode"
 
@@ -31,7 +30,7 @@ var pool *tunny.Pool
 func Init() {
 	httpTransport = &http.Transport{}
 
-	workerCount := runtime.NumCPU() * 2
+	workerCount := 64
 
 	pool = tunny.New(workerCount, func() tunny.Worker {
 		return newComfyWorker()
