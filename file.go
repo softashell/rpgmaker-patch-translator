@@ -10,7 +10,7 @@ import (
 	"gitgud.io/softashell/rpgmaker-patch-translator/block"
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/dimchansky/utfbom"
 	"github.com/pkg/errors"
 

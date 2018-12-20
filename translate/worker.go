@@ -3,7 +3,7 @@ package translate
 import (
 	"net/rpc"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type ComfyWorker struct {

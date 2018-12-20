@@ -3,8 +3,8 @@ package lex
 import (
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
+	log "github.com/sirupsen/logrus"
 )
 
 func TestItemAssembly(t *testing.T) {

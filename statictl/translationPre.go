@@ -3,7 +3,7 @@ package statictl
 import (
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // RunPreTranslation Edits original text, called before anything else

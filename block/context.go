@@ -3,7 +3,7 @@ package block
 import (
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"gitgud.io/softashell/rpgmaker-patch-translator/engine"
 )

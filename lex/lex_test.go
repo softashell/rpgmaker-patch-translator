@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
-	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
+	log "github.com/sirupsen/logrus"
 )
 
 type testpair struct {

@@ -13,7 +13,7 @@ import (
 	"gitgud.io/softashell/rpgmaker-patch-translator/engine"
 	"gitgud.io/softashell/rpgmaker-patch-translator/translate"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var (

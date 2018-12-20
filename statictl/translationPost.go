@@ -3,7 +3,7 @@ package statictl
 import (
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // RunPostTranslation Edits text returned from translation service, ignores static tl

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"regexp"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hjson/hjson-go"
+	log "github.com/sirupsen/logrus"
 )
 
 // Normal replace

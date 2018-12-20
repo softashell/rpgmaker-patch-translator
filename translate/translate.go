@@ -8,7 +8,7 @@ import (
 
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 	"github.com/Jeffail/tunny"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type translateRequest struct {

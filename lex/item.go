@@ -8,7 +8,7 @@ import (
 
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
 	"gitgud.io/softashell/rpgmaker-patch-translator/translate"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )

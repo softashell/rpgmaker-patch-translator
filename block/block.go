@@ -4,7 +4,7 @@ import (
 	"gitgud.io/softashell/rpgmaker-patch-translator/lex"
 	"gitgud.io/softashell/rpgmaker-patch-translator/statictl"
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 )
 
