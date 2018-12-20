@@ -61,13 +61,13 @@ func createFileWorkers(fileCount int) (chan string, chan error) {
 	return jobs, results
 }
 
-func createBlockWorkers(fileCount int) (chan blockWork, chan blockWork) {
+func createBlockWorkers(blockCount int) (chan blockWork, chan blockWork) {
 	workerCount := cBlockThreads
 
 	if workerCount < 1 {
 		workerCount = 1
-	} else if workerCount > fileCount {
-		workerCount = fileCount
+	} else if workerCount > blockCount {
+		workerCount = blockCount
 	}
 
 	jobs := make(chan blockWork, workerCount)
