@@ -30,7 +30,7 @@ var pool *tunny.Pool
 func Init() {
 	httpTransport = &http.Transport{}
 
-	workerCount := 64
+	workerCount := 256
 
 	pool = tunny.New(workerCount, func() tunny.Worker {
 		return newComfyWorker()
