@@ -234,7 +234,7 @@ Loop:
 	for {
 		switch l.next() {
 		case eof:
-			log.Warn("Script not terminated properly %q", l.input[l.start:])
+			log.Warnf("Script not terminated properly %q", l.input[l.start:])
 			break Loop
 		case '(':
 			l.emitBefore(ItemScript)
@@ -359,7 +359,7 @@ Loop:
 	for {
 		switch l.next() {
 		case eof:
-			log.Warn("Ruby block not terminated properly %q", l.input[l.start:])
+			log.Warnf("Ruby block not terminated properly %q", l.input[l.start:])
 			break Loop
 		case '#':
 			log.Debug("Starting ruby block")

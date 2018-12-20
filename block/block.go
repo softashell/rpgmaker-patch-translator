@@ -4,8 +4,8 @@ import (
 	"gitgud.io/softashell/rpgmaker-patch-translator/lex"
 	"gitgud.io/softashell/rpgmaker-patch-translator/statictl"
 	"gitgud.io/softashell/rpgmaker-patch-translator/text"
-	log "github.com/sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
+	log "github.com/sirupsen/logrus"
 )
 
 type PatchBlock struct {
@@ -126,7 +126,7 @@ func ParseBlockRemoteTL(block PatchBlock, sourceText string) PatchBlock {
 
 		t.Text, err = stl.RunPostTranslation(t.Text)
 		if err != nil {
-			log.Error("failed to apply post translation: %v", err)
+			log.Errorf("failed to apply post translation: %v", err)
 		}
 
 		t.Contexts = good
